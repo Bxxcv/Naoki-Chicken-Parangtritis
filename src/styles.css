@@ -1,11 +1,19 @@
 :root {
   --nk-red: #d71920;
   --nk-red-dark: #ab1117;
+  --nk-gold: #f2a900;
+  --nk-gold-dark: #c98600;
+  --nk-choco: #3a2416;
   --nk-cream: #fff8ed;
   --nk-ink: #171717;
   --nk-muted: #6b7280;
   --nk-border: #ececec;
   --nk-shadow: 0 12px 30px rgba(0, 0, 0, .07);
+  --nk-shadow-warm: 0 16px 36px rgba(171, 17, 23, .12);
+  --nk-shadow-soft: 0 10px 24px rgba(58, 36, 22, .12);
+  --nk-radius-lg: 28px;
+  --nk-radius-md: 20px;
+  --font-display: 'Fredoka', Inter, system-ui, sans-serif;
 }
 
 body {
@@ -40,9 +48,7 @@ body {
 .sidebar .nav-link:hover { background: #fff3f3; color: var(--nk-red); }
 .admin-main { width: 100%; overflow-x: hidden; }
 
-.hero-section { background: var(--nk-cream); }
-.eyebrow { color: var(--nk-red); font-weight: 800; letter-spacing: .14em; font-size: .8rem; }
-.food-placeholder, .chart-placeholder {
+.chart-placeholder {
   border-radius: 28px;
   min-height: 320px;
   display: grid;
@@ -52,6 +58,8 @@ body {
   font-weight: 800;
   letter-spacing: .08em;
 }
+
+:focus-visible { outline: 3px solid var(--nk-gold); outline-offset: 2px; }
 
 .card { border: 1px solid var(--nk-border); border-radius: 18px; box-shadow: var(--nk-shadow); }
 .metric-value { font-size: 1.8rem; font-weight: 900; margin: 6px 0; }
@@ -73,4 +81,323 @@ body {
   .sidebar .nav { flex-direction: row !important; overflow-x: auto; white-space: nowrap; }
   .sidebar .nav-link { font-size: .72rem; padding: 8px 10px; }
   .admin-main { padding-bottom: 72px; }
+}
+
+/* ============================================================
+   LANDING PAGE (customer) — src/pages/Home.jsx
+   ============================================================ */
+.customer-shell h1,
+.customer-shell h2 {
+  font-family: var(--font-display);
+  letter-spacing: -.01em;
+}
+
+/* ---- Navbar ---- */
+.customer-shell .admin-ghost-link {
+  color: var(--nk-muted);
+  font-size: .78rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--nk-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  transition: color .15s ease, border-color .15s ease;
+}
+.customer-shell .admin-ghost-link:hover { color: var(--nk-red); border-color: var(--nk-red); }
+
+.customer-shell .cart-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--nk-border);
+  background: #fff;
+  color: var(--nk-ink);
+  text-decoration: none;
+  transition: border-color .15s ease, color .15s ease;
+}
+.customer-shell .cart-pill:hover { border-color: var(--nk-red); color: var(--nk-red); }
+.customer-shell .cart-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--nk-red);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.customer-shell .cart-badge.bump { animation: cart-bump .38s ease; }
+@keyframes cart-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+/* ---- Hero ---- */
+.hero {
+  background: radial-gradient(120% 140% at 12% 0%, #fff 0%, var(--nk-cream) 48%, var(--nk-cream) 100%);
+  overflow: hidden;
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--nk-border);
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--nk-choco);
+}
+.status-pill svg { color: var(--nk-red); flex: 0 0 auto; }
+
+.hero h1 {
+  font-size: clamp(2.1rem, 1.2rem + 4vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.06;
+  margin-top: 16px;
+}
+.hero .lead { max-width: 46ch; }
+
+.hero-cta .btn { border-radius: 999px; font-weight: 700; padding-inline: 26px; }
+.hero-cta .btn-danger { box-shadow: var(--nk-shadow-warm); }
+.hero-cta .btn-outline-dark { border-width: 2px; }
+
+/* ---- Hero visual: paha ayam goreng jatuh ---- */
+.hero-visual {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  margin-inline: auto;
+  aspect-ratio: 1 / 1;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: linear-gradient(160deg, var(--nk-red) 0%, var(--nk-red-dark) 100%);
+  box-shadow: var(--nk-shadow-warm);
+  cursor: pointer;
+  overflow: hidden;
+}
+.hero-visual svg { width: 100%; height: 100%; display: block; }
+.hero-visual-hint {
+  text-align: center;
+  font-size: .74rem;
+  color: var(--nk-muted);
+  margin-top: 10px;
+}
+
+.chicken-piece {
+  transform-origin: 50% 50%;
+  animation: chicken-fall 1.5s cubic-bezier(.24, .86, .4, 1) both;
+}
+@keyframes chicken-fall {
+  0%   { transform: translateY(-160px) rotate(-16deg); opacity: 0; }
+  10%  { opacity: 1; }
+  58%  { transform: translateY(0) rotate(5deg); }
+  70%  { transform: translateY(-12px) rotate(-2deg); }
+  82%  { transform: translateY(0) rotate(2deg); }
+  92%  { transform: translateY(-4px) rotate(-1deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.basket {
+  transform-origin: 50% 100%;
+  animation: basket-squash 1.5s ease both;
+}
+@keyframes basket-squash {
+  0%, 62% { transform: scale(1, 1); }
+  68%     { transform: scale(1.06, .9); }
+  78%     { transform: scale(.98, 1.03); }
+  100%    { transform: scale(1, 1); }
+}
+
+.crumb {
+  opacity: 0;
+  transform-origin: center;
+  animation: crumb-burst .7s ease-out 1.15s both;
+}
+@keyframes crumb-burst {
+  0%   { transform: translate(0, 0) scale(0); opacity: 0; }
+  15%  { opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(1); opacity: 0; }
+}
+
+.steam {
+  opacity: 0;
+  animation: steam-rise 4.5s ease-in-out infinite;
+}
+@keyframes steam-rise {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  20%  { opacity: .5; }
+  100% { transform: translateY(-42px) scale(1.5); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chicken-piece, .basket, .crumb, .steam {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .crumb { display: none; }
+}
+
+@media (max-width: 576px) {
+  .hero-visual { max-width: 280px; }
+}
+
+/* ---- Cara Pesan (steps) ---- */
+.step-card {
+  background: #fff;
+  border: 1px solid var(--nk-border);
+  border-radius: var(--nk-radius-md);
+  padding: 22px 18px;
+  height: 100%;
+}
+.step-number {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--nk-choco);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+/* ---- Category scroller ---- */
+.category-scroller {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-block: 4px 6px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.category-scroller::-webkit-scrollbar { display: none; }
+.category-chip {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+  border: 1.5px solid var(--nk-border);
+  background: #fff;
+  color: var(--nk-ink);
+  font-weight: 700;
+  font-size: .86rem;
+  padding: 9px 18px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.category-chip.is-active { background: var(--nk-red); border-color: var(--nk-red); color: #fff; }
+
+/* ---- Menu grid / product card ---- */
+.menu-caption { color: var(--nk-muted); font-size: .85rem; }
+.product-card {
+  background: #fff;
+  border: 1px solid var(--nk-border);
+  border-radius: var(--nk-radius-md);
+  padding: 18px;
+  height: 100%;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+@media (hover: hover) {
+  .product-card:hover { transform: translateY(-5px); box-shadow: var(--nk-shadow-soft); }
+}
+.product-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: var(--nk-cream);
+  color: var(--nk-gold-dark);
+  margin-bottom: 14px;
+}
+.product-name { font-weight: 700; margin-bottom: 2px; }
+.product-note { color: var(--nk-muted); font-size: .82rem; min-height: 2.4em; }
+.product-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.product-price { font-weight: 800; color: var(--nk-choco); }
+.qty-add-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--nk-red);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  transition: transform .15s ease, background .15s ease;
+}
+.qty-add-btn:hover { background: var(--nk-red-dark); }
+.qty-add-btn:active { transform: scale(.88); }
+.qty-badge {
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--nk-choco);
+  color: #fff;
+  font-size: .74rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  padding-inline: 6px;
+}
+
+/* ---- Order modes ---- */
+.order-modes { background: var(--nk-choco); border-radius: var(--nk-radius-lg); color: #fff; }
+.order-modes .mode-subtitle { color: rgba(255, 247, 237, .8); margin-bottom: 0; }
+.mode-card { padding: 6px 4px; }
+.mode-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .12);
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+}
+.mode-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+.mode-card p { font-size: .84rem; color: rgba(255, 247, 237, .82); margin: 0; }
+
+/* ---- Kenapa Kami ---- */
+.why-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: #fff3ea;
+  color: var(--nk-red);
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+}
+
+/* ---- Footer CTA ---- */
+.landing-footer-cta {
+  background: linear-gradient(135deg, var(--nk-red) 0%, var(--nk-red-dark) 100%);
+  border-radius: var(--nk-radius-lg);
+  color: #fff;
+  text-align: center;
+  padding: 48px 24px;
+}
+.landing-footer-cta p { color: rgba(255, 255, 255, .85); }
+.landing-footer-cta .btn-light { border-radius: 999px; font-weight: 700; padding-inline: 26px; }
+
+/* ---- Reveal on scroll (per-section, bukan per-card) ---- */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
 }

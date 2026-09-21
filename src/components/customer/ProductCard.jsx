@@ -6,24 +6,22 @@ const rupiah = new Intl.NumberFormat('id-ID', {
 
 export default function ProductCard({ product, qty, onAdd }) {
   return (
-    <div className="product-card">
-      <div className="product-icon">{product.icon}</div>
-      <div className="product-name">{product.name}</div>
+    <article className="product-card">
+      <div className="product-thumb">
+        {product.tag && <span className="product-tag">{product.tag}</span>}
+        <span className="product-icon">{product.icon}</span>
+      </div>
+      <h3 className="product-name">{product.name}</h3>
       <p className="product-note">{product.note}</p>
       <div className="product-foot">
         <span className="product-price">{rupiah.format(product.price)}</span>
-        <div className="d-flex align-items-center gap-2">
+        <div className="product-actions">
           {qty > 0 && <span className="qty-badge">{qty}</span>}
-          <button
-            type="button"
-            className="qty-add-btn"
-            aria-label={`Tambah ${product.name}`}
-            onClick={onAdd}
-          >
+          <button type="button" className="qty-add-btn" aria-label={`Tambah ${product.name}`} onClick={onAdd}>
             +
           </button>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/customer/Hero.jsx';
+import BrandLogo from '../components/customer/BrandLogo.jsx';
 import CategoryScroller from '../components/customer/CategoryScroller.jsx';
 import ProductCard from '../components/customer/ProductCard.jsx';
 import {
@@ -12,44 +13,35 @@ import {
   IconTakeaway,
   IconPickup,
   IconDelivery,
-  IconPin,
-  IconToggle,
 } from '../components/customer/icons.jsx';
 import useReveal from '../lib/useReveal.js';
 
-// Data menu di bawah ini masih mock untuk tahap desain UI/UX — belum terhubung
-// ke Supabase. Lihat prompts/01-DESIGNARENA-LOVABLE-UI.md: "Keep data mocked."
+// Menu di bawah masih mock untuk tahap desain UI/UX — belum terhubung Supabase.
+// Lihat prompts/01-DESIGNARENA-LOVABLE-UI.md: "Keep data mocked."
 const ICONS_BY_KEY = { drumstick: IconDrumstick, bowl: IconBowl, drink: IconDrink };
 
 const CATEGORIES = ['Semua', 'Ayam Goreng', 'Ayam Geprek', 'Paket Hemat', 'Nasi & Lauk', 'Minuman'];
 
 const PRODUCTS = [
-  { id: 'p1', name: 'Ayam Goreng Original', category: 'Ayam Goreng', price: 18000, note: '1 potong ayam + sambal bawang', icon: 'drumstick' },
+  { id: 'p1', name: 'Ayam Goreng Original', category: 'Ayam Goreng', price: 18000, note: '1 potong ayam + sambal bawang', icon: 'drumstick', tag: 'Favorit' },
   { id: 'p2', name: 'Ayam Goreng Madu', category: 'Ayam Goreng', price: 20000, note: 'Manis gurih berbalut madu', icon: 'drumstick' },
-  { id: 'p3', name: 'Ayam Geprek Sambal Bawang', category: 'Ayam Geprek', price: 22000, note: 'Level pedas sesuai selera', icon: 'drumstick' },
-  { id: 'p4', name: 'Paket Hemat Ayam + Nasi', category: 'Paket Hemat', price: 20000, note: 'Ayam + nasi + es teh', icon: 'bowl' },
+  { id: 'p3', name: 'Ayam Geprek Sambal Bawang', category: 'Ayam Geprek', price: 22000, note: 'Level pedas sesuai selera', icon: 'drumstick', tag: 'Pedas' },
+  { id: 'p4', name: 'Paket Hemat Ayam + Nasi', category: 'Paket Hemat', price: 20000, note: 'Ayam + nasi + es teh', icon: 'bowl', tag: 'Hemat' },
   { id: 'p5', name: 'Nasi + Tempe Orek', category: 'Nasi & Lauk', price: 12000, note: 'Cocok jadi teman ayam', icon: 'bowl' },
   { id: 'p6', name: 'Es Teh Manis', category: 'Minuman', price: 5000, note: 'Segar dan pas manisnya', icon: 'drink' },
 ];
 
-const STEPS = [
-  { title: 'Pilih Menu', desc: 'Cari ayam goreng, paket, dan minuman favoritmu.' },
-  { title: 'Pilih Cara Pesan', desc: 'Dine-in, takeaway, pickup, atau delivery.' },
-  { title: 'Bayar', desc: 'Cash atau QRIS langsung di outlet.' },
-  { title: 'Santap', desc: 'Ambil, ditemani, atau diantar ke lokasimu.' },
-];
-
 const MODES = [
-  { icon: IconDineIn, title: 'Dine-in', desc: 'Santap langsung di outlet Parangtritis.' },
-  { icon: IconTakeaway, title: 'Takeaway', desc: 'Bawa pulang setelah selesai digoreng.' },
-  { icon: IconPickup, title: 'Pickup', desc: 'Pesan dulu, ambil saat sudah siap.' },
-  { icon: IconDelivery, title: 'Delivery', desc: 'Diantar ke lokasimu di sekitar Parangtritis.' },
+  { icon: IconDineIn, title: 'Dine-in', desc: 'Santap di outlet', tone: 'red' },
+  { icon: IconTakeaway, title: 'Takeaway', desc: 'Bawa pulang', tone: 'gold' },
+  { icon: IconPickup, title: 'Pickup', desc: 'Pesan dulu, ambil nanti', tone: 'red' },
+  { icon: IconDelivery, title: 'Delivery', desc: 'Diantar ke lokasimu', tone: 'gold' },
 ];
 
-const WHY_US = [
-  { icon: IconPin, title: 'Dekat Pantai Parangtritis', desc: 'Lokasi strategis di kawasan wisata Parangtritis.' },
-  { icon: IconToggle, title: 'Fleksibel Cara Pesan', desc: 'Dine-in, takeaway, pickup, atau delivery sesuai kebutuhanmu.' },
-  { icon: IconPickup, title: 'Dikelola Langsung Outlet', desc: 'Dijalankan langsung oleh tim outlet, bukan waralaba jarak jauh.' },
+const STEPS = [
+  { title: 'Pilih menu', desc: 'Ayam goreng, paket hemat, sampai minuman.' },
+  { title: 'Tentukan cara pesan', desc: 'Dine-in, takeaway, pickup, atau delivery.' },
+  { title: 'Bayar', desc: 'Cash atau QRIS langsung di outlet.' },
 ];
 
 export default function Home() {
@@ -58,10 +50,9 @@ export default function Home() {
   const [bump, setBump] = useState(false);
   const bumpTimer = useRef(null);
 
-  const [stepsRef, stepsVisible] = useReveal();
   const [modesRef, modesVisible] = useReveal();
-  const [whyRef, whyVisible] = useReveal();
-  const [ctaRef, ctaVisible] = useReveal();
+  const [menuRef, menuVisible] = useReveal(0.1);
+  const [promoRef, promoVisible] = useReveal(0.15);
 
   const cartCount = Object.values(cart).reduce((sum, n) => sum + n, 0);
 
@@ -78,40 +69,39 @@ export default function Home() {
 
   return (
     <main className="customer-shell">
-      <nav className="navbar border-bottom bg-white sticky-top">
-        <div className="container py-2 d-flex align-items-center justify-content-between gap-3">
-          <div>
-            <div className="brand">Naoki<span>Chicken</span></div>
-            <div className="small text-muted">Parangtritis</div>
-          </div>
-          <div className="d-none d-md-flex align-items-center gap-4">
-            <a href="#menu" className="text-decoration-none text-dark fw-semibold small">Menu</a>
-            <a href="#cara-pesan" className="text-decoration-none text-dark fw-semibold small">Cara Pesan</a>
-            <a href="#kenapa-kami" className="text-decoration-none text-dark fw-semibold small">Kenapa Kami</a>
-          </div>
-          <div className="d-flex align-items-center gap-2">
-            <Link to="/admin" className="admin-ghost-link d-none d-sm-inline-block">Admin Preview</Link>
+      <header className="topbar">
+        <div className="container topbar-inner">
+          <a href="#beranda" className="topbar-brand" aria-label="Naoki Chicken Parangtritis, ke beranda">
+            <BrandLogo />
+          </a>
+
+          <nav className="topbar-nav" aria-label="Navigasi utama">
+            <a href="#menu">Menu</a>
+            <a href="#cara-pesan">Cara Pesan</a>
+            <a href="#outlet">Outlet</a>
+          </nav>
+
+          <div className="topbar-actions">
+            <a href="#menu" className="btn-red d-none d-sm-inline-flex">Pesan Sekarang</a>
             <a href="#menu" className="cart-pill" aria-label={`Lihat menu, keranjang berisi ${cartCount} item`}>
               <IconCart />
               {cartCount > 0 && <span className={`cart-badge${bump ? ' bump' : ''}`}>{cartCount}</span>}
             </a>
           </div>
         </div>
-      </nav>
+      </header>
 
       <Hero />
 
-      <section className="py-5" id="cara-pesan" ref={stepsRef}>
-        <div className={`container reveal ${stepsVisible ? 'is-visible' : ''}`}>
-          <h2 className="h3 fw-bold mb-1">Cara Pesan</h2>
-          <p className="text-secondary mb-4">Empat langkah singkat, dari pilih menu sampai santap.</p>
-          <div className="row g-3 steps-row">
-            {STEPS.map((step, index) => (
-              <div className="col-6 col-lg-3" key={step.title}>
-                <div className="step-card">
-                  <div className="step-number">{index + 1}</div>
-                  <h3 className="h6 fw-bold mb-1">{step.title}</h3>
-                  <p className="small text-secondary mb-0">{step.desc}</p>
+      <section className="mode-strip" ref={modesRef}>
+        <div className={`container reveal ${modesVisible ? 'is-visible' : ''}`}>
+          <div className="row g-3">
+            {MODES.map(({ icon: Icon, title, desc, tone }) => (
+              <div className="col-6 col-lg-3" key={title}>
+                <div className={`mode-tile mode-tile--${tone}`}>
+                  <span className="mode-tile-icon"><Icon width="26" height="26" /></span>
+                  <span className="mode-tile-title">{title}</span>
+                  <span className="mode-tile-desc">{desc}</span>
                 </div>
               </div>
             ))}
@@ -119,20 +109,22 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-5" id="menu">
-        <div className="container">
-          <h2 className="h3 fw-bold mb-1">Menu Favorit</h2>
-          <p className="menu-caption mb-3">Pratinjau menu untuk tahap desain — harga & ketersediaan final menyusul.</p>
+      <section className="menu-section" id="menu" ref={menuRef}>
+        <div className={`container reveal ${menuVisible ? 'is-visible' : ''}`}>
+          <div className="section-head">
+            <h2>Menu Favorit</h2>
+            <p>Pratinjau menu untuk tahap desain — harga dan ketersediaan final menyusul.</p>
+          </div>
 
           <CategoryScroller categories={CATEGORIES} active={activeCategory} onSelect={setActiveCategory} />
 
-          <div className="row g-3 mt-1">
+          <div className="row g-3 g-lg-4 mt-1">
             {visibleProducts.map((product) => {
               const ProductIcon = ICONS_BY_KEY[product.icon];
               return (
                 <div className="col-6 col-lg-4" key={product.id}>
                   <ProductCard
-                    product={{ ...product, icon: <ProductIcon /> }}
+                    product={{ ...product, icon: <ProductIcon width="34" height="34" /> }}
                     qty={cart[product.id] || 0}
                     onAdd={() => handleAdd(product.id)}
                   />
@@ -143,57 +135,46 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-5" ref={modesRef}>
-        <div className={`container reveal ${modesVisible ? 'is-visible' : ''}`}>
-          <div className="order-modes p-4 p-lg-5">
-            <h2 className="h4 fw-bold mb-1">Pesan Sesuai Caramu</h2>
-            <p className="mode-subtitle mb-4">Outlet Parangtritis melayani empat cara pesan.</p>
-            <div className="row g-3">
-              {MODES.map(({ icon: Icon, title, desc }) => (
-                <div className="col-6 col-lg-3" key={title}>
-                  <div className="mode-card">
-                    <div className="mode-icon"><Icon /></div>
-                    <h3>{title}</h3>
-                    <p>{desc}</p>
-                  </div>
-                </div>
-              ))}
+      <section className="promo-section" id="cara-pesan" ref={promoRef}>
+        <div className={`container reveal ${promoVisible ? 'is-visible' : ''}`}>
+          <div className="row g-3 g-lg-4">
+            <div className="col-lg-7">
+              <div className="promo-card promo-card--cream">
+                <h2>Pesan dalam tiga langkah.</h2>
+                <ol className="promo-steps">
+                  {STEPS.map((step) => (
+                    <li key={step.title}>
+                      <strong>{step.title}</strong>
+                      <span>{step.desc}</span>
+                    </li>
+                  ))}
+                </ol>
+                <a href="#menu" className="btn-red">Mulai Pesan</a>
+              </div>
+            </div>
+
+            <div className="col-lg-5" id="outlet">
+              <div className="promo-card promo-card--red">
+                <img src="/brand/naoki-mark.png" alt="" className="promo-mascot" width="364" height="420" loading="lazy" />
+                <h2>Naoki Chicken &amp; Playground</h2>
+                <p>Outlet Parangtritis dikelola langsung oleh tim lokal — pesanan disiapkan di tempat, bukan dikirim dari pusat.</p>
+                <a href="#menu" className="btn-gold">Lihat Menu</a>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-5" id="kenapa-kami" ref={whyRef}>
-        <div className={`container reveal ${whyVisible ? 'is-visible' : ''}`}>
-          <h2 className="h3 fw-bold mb-4">Kenapa Naoki Chicken Parangtritis</h2>
-          <div className="row g-4">
-            {WHY_US.map(({ icon: Icon, title, desc }) => (
-              <div className="col-md-4" key={title}>
-                <div className="why-card">
-                  <div className="why-icon"><Icon /></div>
-                  <h3 className="h6 fw-bold mb-1">{title}</h3>
-                  <p className="small text-secondary mb-0">{desc}</p>
-                </div>
-              </div>
-            ))}
+      <footer className="site-footer">
+        <div className="container">
+          <div className="footer-top">
+            <BrandLogo variant="full" />
+            <p className="footer-slogan">Pasti Kenyang, Pasti Senang.</p>
           </div>
-        </div>
-      </section>
-
-      <section className="py-5" ref={ctaRef}>
-        <div className={`container reveal ${ctaVisible ? 'is-visible' : ''}`}>
-          <div className="landing-footer-cta">
-            <h2 className="h3 fw-bold mb-2">Siap Coba Ayam Goreng Renyah Kami?</h2>
-            <p className="mb-4">Pilih menu, tentukan cara pesan, selesai.</p>
-            <a href="#menu" className="btn btn-light btn-lg">Lihat Menu</a>
+          <div className="footer-bottom">
+            <span>© {new Date().getFullYear()} Naoki Chicken Parangtritis</span>
+            <Link to="/admin" className="footer-admin-link">Admin Preview</Link>
           </div>
-        </div>
-      </section>
-
-      <footer className="py-4 border-top">
-        <div className="container small text-muted d-flex flex-wrap justify-content-between gap-2">
-          <span>© {new Date().getFullYear()} Naoki Chicken Parangtritis</span>
-          <span>Outlet dikelola independen di Parangtritis</span>
         </div>
       </footer>
     </main>

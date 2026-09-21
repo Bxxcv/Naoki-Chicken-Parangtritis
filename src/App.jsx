@@ -1,53 +1,32 @@
-import { Link, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home.jsx';
-import AdminDashboard from './pages/AdminDashboard.jsx';
-import ModulePlaceholder from './pages/ModulePlaceholder.jsx';
-
-const modules = [
-  ['Orders', '/admin/orders'],
-  ['POS / Cashier', '/admin/pos'],
-  ['Kitchen', '/admin/kitchen'],
-  ['Products', '/admin/products'],
-  ['Stock', '/admin/stock'],
-  ['Customers', '/admin/customers'],
-  ['Expenses', '/admin/expenses'],
-  ['Payments', '/admin/payments'],
-  ['Reports', '/admin/reports'],
-  ['Analytics', '/admin/analytics'],
-  ['Settings', '/admin/settings'],
-];
+import AdminLayout from './components/admin/AdminLayout.jsx';
+import Dashboard from './pages/admin/Dashboard.jsx';
+import Orders from './pages/admin/Orders.jsx';
+import Kitchen from './pages/admin/Kitchen.jsx';
+import Settings from './pages/admin/Settings.jsx';
+import ModulePlaceholder from './pages/admin/ModulePlaceholder.jsx';
 
 function App() {
-  const location = useLocation();
-  const isAdmin = location.pathname.startsWith('/admin');
-
-  if (!isAdmin) {
-    return (
-      <Routes>
-        <Route path="*" element={<Home />} />
-      </Routes>
-    );
-  }
-
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand">Naoki<span>Chicken</span></div>
-        <div className="brand-sub">Parangtritis</div>
-        <nav className="nav flex-column mt-4 gap-1">
-          <Link className="nav-link" to="/admin">Dashboard</Link>
-          {modules.map(([label, path]) => (
-            <Link key={path} className="nav-link" to={path}>{label}</Link>
-          ))}
-        </nav>
-      </aside>
-      <main className="admin-main">
-        <Routes>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/*" element={<ModulePlaceholder />} />
-        </Routes>
-      </main>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route
+        path="/admin/*"
+        element={
+          <AdminLayout>
+            <Routes>
+              <Route index element={<Dashboard />} />
+              <Route path="pesanan" element={<Orders />} />
+              <Route path="dapur" element={<Kitchen />} />
+              <Route path="pengaturan" element={<Settings />} />
+              <Route path="*" element={<ModulePlaceholder />} />
+            </Routes>
+          </AdminLayout>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

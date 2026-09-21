@@ -1,34 +1,20 @@
-// Logo dipakai dua varian:
-// - "mark": maskot saja, aman di atas latar terang (navbar emas, kartu krem).
-// - "full": maskot + wordmark krem, HANYA untuk latar gelap/merah
-//   (wordmark di file logo berwarna krem, hilang di latar terang).
-export default function BrandLogo({ variant = 'mark', className = '' }) {
-  if (variant === 'full') {
-    return (
-      <img
-        src="/brand/naoki-logo-full.png"
-        alt="Naoki Chicken & Playground"
-        className={`brand-logo-full ${className}`.trim()}
-        width="900"
-        height="461"
-        loading="lazy"
-      />
-    );
-  }
+import { Link } from 'react-router-dom';
 
+// Logo resmi Naoki Chicken. Maskot dipakai sebagai lambang di dalam kotak merah,
+// wordmark ditulis sebagai teks supaya tetap tajam di semua ukuran layar.
+// (Wordmark di file logo asli berwarna krem, jadi tidak bisa dipakai di latar terang.)
+export default function BrandLogo({ to = '/', size = 'md' }) {
   return (
-    <span className={`brand-lockup ${className}`.trim()}>
-      <img
-        src="/brand/naoki-mark.png"
-        alt=""
-        className="brand-mark"
-        width="364"
-        height="420"
-      />
-      <span className="brand-text">
-        <span className="brand-name">Naoki Chicken</span>
+    <Link to={to} className={`brand-lockup brand-lockup--${size}`} aria-label="Naoki Chicken Parangtritis">
+      <span className="brand-badge">
+        <img src="/brand/naoki-mark.png" alt="" width="364" height="420" />
+      </span>
+      <span className="brand-words">
+        <span className="brand-name">
+          Naoki <em>Chicken</em>
+        </span>
         <span className="brand-outlet">Parangtritis</span>
       </span>
-    </span>
+    </Link>
   );
 }

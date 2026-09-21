@@ -1,0 +1,31 @@
+import {
+  IconDashboard,
+  IconOrders,
+  IconPos,
+  IconKitchen,
+  IconProducts,
+  IconStock,
+  IconCustomers,
+  IconExpenses,
+  IconPayments,
+  IconReports,
+  IconAnalytics,
+  IconStaff,
+  IconSettings,
+} from './icons.jsx';
+
+export const ADMIN_NAV = [
+  { label: 'Dasbor', path: '/admin', icon: IconDashboard, end: true },
+  { label: 'Pesanan', path: '/admin/pesanan', icon: IconOrders },
+  { label: 'POS / Kasir', path: '/admin/pos', icon: IconPos },
+  { label: 'Dapur', path: '/admin/dapur', icon: IconKitchen },
+  { label: 'Produk', path: '/admin/produk', icon: IconProducts },
+  { label: 'Stok', path: '/admin/stok', icon: IconStock },
+  { label: 'Pelanggan', path: '/admin/pelanggan', icon: IconCustomers },
+  { label: 'Pengeluaran', path: '/admin/pengeluaran', icon: IconExpenses },
+  { label: 'Pembayaran', path: '/admin/pembayaran', icon: IconPayments },
+  { label: 'Laporan', path: '/admin/laporan', icon: IconReports },
+  { label: 'Analitik', path: '/admin/analitik', icon: IconAnalytics },
+  { label: 'Karyawan', path: '/admin/karyawan', icon: IconStaff },
+  { label: 'Pengaturan', path: '/admin/pengaturan', icon: IconSettings },
+];

@@ -1,182 +1,235 @@
-import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Hero from '../components/customer/Hero.jsx';
 import BrandLogo from '../components/customer/BrandLogo.jsx';
-import CategoryScroller from '../components/customer/CategoryScroller.jsx';
-import ProductCard from '../components/customer/ProductCard.jsx';
+import HeroVideo from '../components/customer/HeroVideo.jsx';
+import Faq from '../components/customer/Faq.jsx';
+import useReveal from '../lib/useReveal.js';
 import {
-  IconCart,
-  IconDrumstick,
-  IconBowl,
-  IconDrink,
+  IconPin,
   IconDineIn,
   IconTakeaway,
   IconPickup,
   IconDelivery,
+  IconDrumstick,
+  IconBag,
+  IconCup,
+  IconSearch,
+  IconClock,
+  IconArrowRight,
 } from '../components/customer/icons.jsx';
-import useReveal from '../lib/useReveal.js';
 
-// Menu di bawah masih mock untuk tahap desain UI/UX — belum terhubung Supabase.
-// Lihat prompts/01-DESIGNARENA-LOVABLE-UI.md: "Keep data mocked."
-const ICONS_BY_KEY = { drumstick: IconDrumstick, bowl: IconBowl, drink: IconDrink };
-
-const CATEGORIES = ['Semua', 'Ayam Goreng', 'Ayam Geprek', 'Paket Hemat', 'Nasi & Lauk', 'Minuman'];
-
-const PRODUCTS = [
-  { id: 'p1', name: 'Ayam Goreng Original', category: 'Ayam Goreng', price: 18000, note: '1 potong ayam + sambal bawang', icon: 'drumstick', tag: 'Favorit' },
-  { id: 'p2', name: 'Ayam Goreng Madu', category: 'Ayam Goreng', price: 20000, note: 'Manis gurih berbalut madu', icon: 'drumstick' },
-  { id: 'p3', name: 'Ayam Geprek Sambal Bawang', category: 'Ayam Geprek', price: 22000, note: 'Level pedas sesuai selera', icon: 'drumstick', tag: 'Pedas' },
-  { id: 'p4', name: 'Paket Hemat Ayam + Nasi', category: 'Paket Hemat', price: 20000, note: 'Ayam + nasi + es teh', icon: 'bowl', tag: 'Hemat' },
-  { id: 'p5', name: 'Nasi + Tempe Orek', category: 'Nasi & Lauk', price: 12000, note: 'Cocok jadi teman ayam', icon: 'bowl' },
-  { id: 'p6', name: 'Es Teh Manis', category: 'Minuman', price: 5000, note: 'Segar dan pas manisnya', icon: 'drink' },
+const NAV = [
+  { label: 'Beranda', href: '#beranda' },
+  { label: 'Menu', href: '#menu' },
+  { label: 'Keranjang', href: '#keranjang' },
+  { label: 'Riwayat', href: '#riwayat' },
+  { label: 'Profil', href: '#profil' },
 ];
 
-const MODES = [
-  { icon: IconDineIn, title: 'Dine-in', desc: 'Santap di outlet', tone: 'red' },
-  { icon: IconTakeaway, title: 'Takeaway', desc: 'Bawa pulang', tone: 'gold' },
-  { icon: IconPickup, title: 'Pickup', desc: 'Pesan dulu, ambil nanti', tone: 'red' },
-  { icon: IconDelivery, title: 'Delivery', desc: 'Diantar ke lokasimu', tone: 'gold' },
+const CHANNELS = [
+  { icon: IconDineIn, label: 'Makan di tempat' },
+  { icon: IconTakeaway, label: 'Bawa pulang' },
+  { icon: IconPickup, label: 'Ambil sendiri' },
+  { icon: IconDelivery, label: 'Diantar' },
+];
+
+// Kategori sengaja tanpa jumlah item atau harga: menu outlet belum dikunci.
+const CATEGORIES = [
+  { no: '01', icon: IconDrumstick, title: 'Ayam', desc: 'Pilihan untuk pencinta renyah.', tone: 'cream' },
+  { no: '02', icon: IconBag, title: 'Paket', desc: 'Nikmati dalam satu pilihan.', tone: 'gold' },
+  { no: '03', icon: IconCup, title: 'Minuman', desc: 'Lengkapi waktu makan Anda.', tone: 'plain' },
 ];
 
 const STEPS = [
-  { title: 'Pilih menu', desc: 'Ayam goreng, paket hemat, sampai minuman.' },
-  { title: 'Tentukan cara pesan', desc: 'Dine-in, takeaway, pickup, atau delivery.' },
-  { title: 'Bayar', desc: 'Cash atau QRIS langsung di outlet.' },
+  { no: '01', icon: IconSearch, title: 'Pilih yang Anda suka', desc: 'Jelajahi menu dan cek ketersediaannya.' },
+  { no: '02', icon: IconBag, title: 'Sesuaikan pesanan', desc: 'Tentukan jumlah, catatan, dan cara menikmati.' },
+  { no: '03', icon: IconClock, title: 'Pantau prosesnya', desc: 'Simpan nomor pesanan untuk melihat status terbaru.' },
+];
+
+const FAQ = [
+  {
+    q: 'Bagaimana melihat status pesanan?',
+    a: 'Simpan nomor pesanan yang muncul setelah pemesanan, lalu buka halaman Lacak pesanan untuk melihat status terbarunya.',
+  },
+  {
+    q: 'Apakah semua menu sudah tersedia?',
+    a: 'Daftar menu, harga, dan ketersediaan masih disiapkan oleh outlet. Halaman ini akan mengikuti data resmi outlet begitu dikunci.',
+  },
+  {
+    q: 'Di mana informasi alamat dan jam buka?',
+    a: 'Alamat, jam buka, dan kontak resmi menunggu konfirmasi outlet dan akan ditampilkan di sini setelah tersedia.',
+  },
+];
+
+const FOOTER_LINKS = [
+  { title: 'Jelajahi', links: ['Beranda', 'Menu', 'Keranjang'] },
+  { title: 'Pesanan Anda', links: ['Lacak pesanan', 'Riwayat pesanan', 'Pembayaran', 'Profil'] },
 ];
 
 export default function Home() {
-  const [activeCategory, setActiveCategory] = useState('Semua');
-  const [cart, setCart] = useState({});
-  const [bump, setBump] = useState(false);
-  const bumpTimer = useRef(null);
-
-  const [modesRef, modesVisible] = useReveal();
-  const [menuRef, menuVisible] = useReveal(0.1);
-  const [promoRef, promoVisible] = useReveal(0.15);
-
-  const cartCount = Object.values(cart).reduce((sum, n) => sum + n, 0);
-
-  const handleAdd = (id) => {
-    setCart((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
-    setBump(true);
-    if (bumpTimer.current) window.clearTimeout(bumpTimer.current);
-    bumpTimer.current = window.setTimeout(() => setBump(false), 380);
-  };
-
-  const visibleProducts = activeCategory === 'Semua'
-    ? PRODUCTS
-    : PRODUCTS.filter((product) => product.category === activeCategory);
+  const [catRef, catVisible] = useReveal(0.12);
+  const [bandRef, bandVisible] = useReveal(0.2);
+  const [stepRef, stepVisible] = useReveal(0.15);
 
   return (
-    <main className="customer-shell">
-      <header className="topbar">
-        <div className="container topbar-inner">
-          <a href="#beranda" className="topbar-brand" aria-label="Naoki Chicken Parangtritis, ke beranda">
-            <BrandLogo />
-          </a>
-
-          <nav className="topbar-nav" aria-label="Navigasi utama">
-            <a href="#menu">Menu</a>
-            <a href="#cara-pesan">Cara Pesan</a>
-            <a href="#outlet">Outlet</a>
+    <div className="customer-shell">
+      <header className="site-nav">
+        <div className="shell-container site-nav-inner">
+          <BrandLogo />
+          <nav className="site-nav-links" aria-label="Navigasi utama">
+            {NAV.map((item, index) => (
+              <a key={item.label} href={item.href} className={index === 0 ? 'is-active' : undefined}>
+                {item.label}
+              </a>
+            ))}
           </nav>
-
-          <div className="topbar-actions">
-            <a href="#menu" className="btn-red d-none d-sm-inline-flex">Pesan Sekarang</a>
-            <a href="#menu" className="cart-pill" aria-label={`Lihat menu, keranjang berisi ${cartCount} item`}>
-              <IconCart />
-              {cartCount > 0 && <span className={`cart-badge${bump ? ' bump' : ''}`}>{cartCount}</span>}
-            </a>
-          </div>
+          <a href="#lacak" className="nav-track-link">Lacak pesanan</a>
         </div>
       </header>
 
-      <Hero />
+      <section className="hero" id="beranda">
+        <div className="hero-bg">
+          <HeroVideo />
+        </div>
+        <div className="shell-container hero-content">
+          <span className="hero-eyebrow">
+            <IconPin size={16} />
+            Dari Parangtritis, untuk Anda
+          </span>
+          <h1>
+            Naoki Chicken
+            <span>Parangtritis</span>
+          </h1>
+          <p className="hero-lead">
+            Saatnya menikmati yang renyah.<br />
+            Pasti kenyang, pasti senang.
+          </p>
+          <div className="hero-actions">
+            <a href="#menu" className="btn-gold">
+              Jelajahi menu <IconArrowRight size={17} />
+            </a>
+            <a href="#lacak" className="btn-dark">Lacak pesanan</a>
+          </div>
+        </div>
+      </section>
 
-      <section className="mode-strip" ref={modesRef}>
-        <div className={`container reveal ${modesVisible ? 'is-visible' : ''}`}>
-          <div className="row g-3">
-            {MODES.map(({ icon: Icon, title, desc, tone }) => (
-              <div className="col-6 col-lg-3" key={title}>
-                <div className={`mode-tile mode-tile--${tone}`}>
-                  <span className="mode-tile-icon"><Icon width="26" height="26" /></span>
-                  <span className="mode-tile-title">{title}</span>
-                  <span className="mode-tile-desc">{desc}</span>
+      <div className="channel-strip">
+        <div className="shell-container channel-strip-inner">
+          {CHANNELS.map(({ icon: Icon, label }) => (
+            <span className="channel-item" key={label}>
+              <Icon size={20} />
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <section className="section" id="menu" ref={catRef}>
+        <div className={`shell-container reveal ${catVisible ? 'is-visible' : ''}`}>
+          <div className="section-head">
+            <div>
+              <span className="eyebrow eyebrow--red">Ada yang renyah untuk setiap selera</span>
+              <h2>Temukan favoritmu.</h2>
+            </div>
+            <a href="#menu" className="section-link">Semua menu <IconArrowRight size={16} /></a>
+          </div>
+
+          <div className="category-grid">
+            {CATEGORIES.map(({ no, icon: Icon, title, desc, tone }) => (
+              <article className={`category-card category-card--${tone}`} key={title}>
+                <span className="category-icon"><Icon size={30} /></span>
+                <span className="category-no">{no}</span>
+                <div className="category-row">
+                  <h3>{title}</h3>
+                  <IconArrowRight size={19} />
                 </div>
-              </div>
+                <p>{desc}</p>
+              </article>
+            ))}
+          </div>
+
+          <p className="section-note">Menu, harga, dan ketersediaan sedang disiapkan oleh outlet.</p>
+        </div>
+      </section>
+
+      <section className="red-band" ref={bandRef}>
+        <div className={`shell-container red-band-inner reveal ${bandVisible ? 'is-visible' : ''}`}>
+          <div className="red-band-copy">
+            <span className="eyebrow eyebrow--gold">Waktunya makan enak</span>
+            <h2>Renyahnya dinikmati.<br />Momennya dibagi.</h2>
+            <p>Sendiri atau bersama, selalu ada alasan untuk menikmati Naoki Chicken.</p>
+            <a href="#menu" className="btn-gold">
+              Lihat pilihan menu <IconArrowRight size={17} />
+            </a>
+          </div>
+          <img className="red-band-mascot" src="/brand/naoki-mark.png" alt="" width="364" height="420" loading="lazy" />
+        </div>
+      </section>
+
+      <section className="section" id="riwayat" ref={stepRef}>
+        <div className={`shell-container reveal ${stepVisible ? 'is-visible' : ''}`}>
+          <span className="eyebrow eyebrow--red">Pesanan Anda</span>
+          <h2 className="section-title">Dari pilihan ke suapan.</h2>
+
+          <div className="step-grid">
+            {STEPS.map(({ no, icon: Icon, title, desc }) => (
+              <article className="step-item" key={no}>
+                <div className="step-top">
+                  <Icon size={21} />
+                  <span className="step-no">{no}</span>
+                </div>
+                <h3>{title}</h3>
+                <p>{desc}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="menu-section" id="menu" ref={menuRef}>
-        <div className={`container reveal ${menuVisible ? 'is-visible' : ''}`}>
-          <div className="section-head">
-            <h2>Menu Favorit</h2>
-            <p>Pratinjau menu untuk tahap desain — harga dan ketersediaan final menyusul.</p>
+      <section className="faq-section" id="profil">
+        <div className="shell-container faq-grid">
+          <div>
+            <span className="eyebrow eyebrow--red">Sebelum memesan</span>
+            <h2 className="section-title">Ada pertanyaan?</h2>
+            <p className="faq-sub">Informasi penting untuk menikmati Naoki Chicken.</p>
           </div>
-
-          <CategoryScroller categories={CATEGORIES} active={activeCategory} onSelect={setActiveCategory} />
-
-          <div className="row g-3 g-lg-4 mt-1">
-            {visibleProducts.map((product) => {
-              const ProductIcon = ICONS_BY_KEY[product.icon];
-              return (
-                <div className="col-6 col-lg-4" key={product.id}>
-                  <ProductCard
-                    product={{ ...product, icon: <ProductIcon width="34" height="34" /> }}
-                    qty={cart[product.id] || 0}
-                    onAdd={() => handleAdd(product.id)}
-                  />
-                </div>
-              );
-            })}
-          </div>
+          <Faq items={FAQ} />
         </div>
       </section>
 
-      <section className="promo-section" id="cara-pesan" ref={promoRef}>
-        <div className={`container reveal ${promoVisible ? 'is-visible' : ''}`}>
-          <div className="row g-3 g-lg-4">
-            <div className="col-lg-7">
-              <div className="promo-card promo-card--cream">
-                <h2>Pesan dalam tiga langkah.</h2>
-                <ol className="promo-steps">
-                  {STEPS.map((step) => (
-                    <li key={step.title}>
-                      <strong>{step.title}</strong>
-                      <span>{step.desc}</span>
-                    </li>
+      <footer className="site-footer" id="keranjang">
+        <div className="shell-container">
+          <div className="footer-grid">
+            <div className="footer-brand">
+              <h3>Naoki Chicken<span>Parangtritis</span></h3>
+              <p>Teman waktu makan Anda.<br />Pasti kenyang, pasti senang.</p>
+            </div>
+
+            {FOOTER_LINKS.map((column) => (
+              <div className="footer-col" key={column.title}>
+                <h4>{column.title}</h4>
+                <ul>
+                  {column.links.map((link) => (
+                    <li key={link}><a href="#beranda">{link}</a></li>
                   ))}
-                </ol>
-                <a href="#menu" className="btn-red">Mulai Pesan</a>
+                </ul>
               </div>
-            </div>
+            ))}
 
-            <div className="col-lg-5" id="outlet">
-              <div className="promo-card promo-card--red">
-                <img src="/brand/naoki-mark.png" alt="" className="promo-mascot" width="364" height="420" loading="lazy" />
-                <h2>Naoki Chicken &amp; Playground</h2>
-                <p>Outlet Parangtritis dikelola langsung oleh tim lokal — pesanan disiapkan di tempat, bukan dikirim dari pusat.</p>
-                <a href="#menu" className="btn-gold">Lihat Menu</a>
-              </div>
+            <div className="footer-col">
+              <h4>Kunjungi &amp; hubungi</h4>
+              <p className="footer-note">
+                Naoki Chicken Parangtritis<br />
+                Alamat, jam buka, dan kontak resmi menunggu konfirmasi outlet.
+              </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      <footer className="site-footer">
-        <div className="container">
-          <div className="footer-top">
-            <BrandLogo variant="full" />
-            <p className="footer-slogan">Pasti Kenyang, Pasti Senang.</p>
-          </div>
           <div className="footer-bottom">
-            <span>© {new Date().getFullYear()} Naoki Chicken Parangtritis</span>
-            <Link to="/admin" className="footer-admin-link">Admin Preview</Link>
+            <span>© {new Date().getFullYear()} Naoki Chicken Parangtritis.</span>
+            <Link to="/admin">Ruang operasional <IconArrowRight size={14} /></Link>
           </div>
         </div>
       </footer>
-    </main>
+    </div>
   );
 }

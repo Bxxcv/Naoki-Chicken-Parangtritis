@@ -234,12 +234,17 @@ export default function Home() {
 
       <section className="section" id="menu" ref={catRef}>
         <div className={`shell-container reveal ${catVisible ? 'is-visible' : ''}`}>
-          <div className="section-head">
+          <div className="section-head menu-head-block">
             <div>
-              <span className="eyebrow eyebrow--red">Ada yang renyah untuk setiap selera</span>
-              <h2>Temukan favoritmu.</h2>
+              <span className="menu-eyebrow">Menu andalan kami</span>
+              <h2>Mau makan apa<br />hari ini?</h2>
+              <p className="menu-sub">
+                {products.length === 0
+                  ? 'Daftar menu sedang disiapkan outlet.'
+                  : `${products.length} pilihan siap dinikmati — geser untuk jelajahi.`}
+              </p>
             </div>
-            <a href="#menu" className="section-link">Semua menu <IconArrowRight size={16} /></a>
+            <a href="#menu-grid" className="section-link">Lihat semua <IconArrowRight size={16} /></a>
           </div>
 
           {categoryCards.length > 0 && (
@@ -284,7 +289,7 @@ export default function Home() {
               {visibleProducts.length === 0 ? (
                 <p className="section-note">Belum ada menu di kategori ini.</p>
               ) : (
-                <div className="menu-grid" id="menu-grid">
+                <div className="menu-carousel" id="menu-grid" aria-label="Daftar menu">
                   {visibleProducts.map((item) => (
                     <MenuCard key={item.id} item={item} />
                   ))}

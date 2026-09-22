@@ -166,7 +166,8 @@ const CATEGORY_PATHS = {
   hotplate: '<ellipse cx="12" cy="15.5" rx="8" ry="3.8" /><ellipse cx="12" cy="15.5" rx="4.5" ry="2" /><path d="M9 3.5c-1.2 1.6 1.2 2.6 0 4.2M12.5 3c-1.2 1.6 1.2 2.6 0 4.2M16 3.5c-1.2 1.6 1.2 2.6 0 4.2" />',
   ricebox: '<path d="M7 9h10l1.2 11H5.8L7 9Z" /><path d="m7 9 1.6-4.5h6.8L17 9" /><path d="M10 4.5V3M14 4.5V3" />',
   extra: '<circle cx="12" cy="12" r="8.5" /><path d="M12 8.5v7M8.5 12h7" />',
-  ayam: '<path d="M14.2 3.2c1.3 0 2 1 1.8 2.2l-.5 2.4c2.3 1 3.7 3.3 3.3 5.7-.6 2.9-3.6 4.8-6.6 4.3-3.2-.5-5.2-3.3-4.6-6.2.5-2.4 2.5-4.1 4.9-4.3l.5-2.5c.1-.9.7-1.6 1.2-1.6Z" /><path d="m9.6 15.2-4 4M6.6 17.2 5 21l3.8-1.6" />',
+  utensils: '<path d="M7 2v7a2 2 0 0 0 4 0V2" /><path d="M9 2v4" /><path d="M9 11v10" /><ellipse cx="16.5" cy="5.8" rx="2.6" ry="3.2" /><path d="m15.2 8.8-5.4 12.2" />',
+  ayam: '<path d="M7 2v7a2 2 0 0 0 4 0V2" /><path d="M9 2v4" /><path d="M9 11v10" /><ellipse cx="16.5" cy="5.8" rx="2.6" ry="3.2" /><path d="m15.2 8.8-5.4 12.2" />',
   paket: '<path d="M4.5 7h15l-1 12.3a2 2 0 0 1-2 1.7H7.5a2 2 0 0 1-2-1.7L4.5 7Z" /><path d="M8.8 10V6.5a3.2 3.2 0 0 1 6.4 0V10" />',
   minum: '<path d="M7 8h10l-1 11a2 2 0 0 1-2 1.8h-4A2 2 0 0 1 8 19L7 8Z" /><path d="M8.6 8 8 4.5h8L15.4 8" /><path d="M17.3 11.5h1.4a2.3 2.3 0 0 1 0 4.6h-1.8" />',
 };
@@ -188,6 +189,7 @@ export function IconCafe(props) { return <CategoryArt art="cafe" {...props} />; 
 export function IconHotPlate(props) { return <CategoryArt art="hotplate" {...props} />; }
 export function IconRiceBox(props) { return <CategoryArt art="ricebox" {...props} />; }
 export function IconExtra(props) { return <CategoryArt art="extra" {...props} />; }
+export function IconUtensils(props) { return <CategoryArt art="utensils" {...props} />; }
 
 export const CATEGORY_COMPONENTS = {
   tea: IconTea,
@@ -197,6 +199,9 @@ export const CATEGORY_COMPONENTS = {
   hotplate: IconHotPlate,
   ricebox: IconRiceBox,
   extra: IconExtra,
+  ayam: IconUtensils,
+  paket: IconBag,
+  minum: IconCup,
 };
 
 export function IconMenuBars(props) {

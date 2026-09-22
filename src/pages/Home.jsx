@@ -184,6 +184,7 @@ export default function Home() {
       </section>
 
       <section className="section cat-section" id="kategori" ref={catRef}>
+        <span className="cat-ghost" aria-hidden="true">01</span>
         <div className={`shell-container reveal ${catVisible ? 'is-visible' : ''}`}>
           <div className="cat-section-inner">
             <div className="cat-section-intro">
@@ -220,14 +221,16 @@ export default function Home() {
       <section className="red-band" ref={bandRef}>
         <div className={`shell-container red-band-inner reveal ${bandVisible ? 'is-visible' : ''}`}>
           <div className="red-band-copy">
-            <span className="eyebrow eyebrow--gold">Naoki Moment</span>
+            <span className="eyebrow-pill">Naoki Moment</span>
             <h2>Renyahnya dinikmati.<br />Momennya dibagi.</h2>
             <p>Sendiri atau bersama, selalu ada alasan untuk menikmati Naoki Chicken.</p>
             <Link to="/menu" className="btn-gold">
               Lihat pilihan menu <IconArrowRight size={17} />
             </Link>
           </div>
-          <img className="red-band-mascot" src="/brand/naoki-mark.png" alt="" width="364" height="420" loading="lazy" />
+          <span className="red-band-ring" aria-hidden="true">
+            <img className="red-band-mascot" src="/brand/naoki-mark.png" alt="" width="364" height="420" loading="lazy" />
+          </span>
         </div>
       </section>
 
@@ -299,6 +302,7 @@ export default function Home() {
       </section>
 
       <footer className="site-footer">
+        <span className="footer-ghost" aria-hidden="true">NAOKI</span>
         <div className="shell-container">
           <div className="footer-grid">
             <div className="footer-brand">
@@ -346,7 +350,6 @@ export default function Home() {
 
           <div className="footer-bottom">
             <span>© {new Date().getFullYear()} Naoki Chicken Parangtritis.</span>
-            <Link to="/admin">Ruang operasional <IconArrowRight size={14} /></Link>
           </div>
         </div>
       </footer>

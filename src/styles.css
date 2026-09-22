@@ -226,6 +226,21 @@ img { max-width: 100%; display: block; }
 }
 
 /* -- Kategori ala desain (intro + kartu) -- */
+.cat-section { position: relative; overflow: hidden; }
+.cat-section::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(31, 15, 14, .08) 1px, transparent 1.5px);
+  background-size: 18px 18px;
+  pointer-events: none;
+}
+.cat-ghost {
+  position: absolute; top: 0; left: max(20px, calc((100% - 1280px) / 2));
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(4.5rem, 8vw, 7rem); line-height: 1;
+  color: rgba(196, 17, 26, .09);
+  pointer-events: none; user-select: none;
+}
+.cat-section-inner { position: relative; }
 .cat-section-inner {
   display: grid; grid-template-columns: .9fr 2.1fr;
   gap: 40px; align-items: start;
@@ -317,7 +332,11 @@ img { max-width: 100%; display: block; }
 @media (max-width: 767.98px) { .value-grid { grid-template-columns: 1fr; gap: 24px; } }
 
 /* -- Pita ajakan emas -- */
-.cta-band { background: var(--c-gold); margin-top: 56px; }
+.cta-band {
+  background-color: var(--c-gold);
+  background-image: repeating-linear-gradient(-45deg, rgba(31, 15, 14, .045) 0 2px, transparent 2px 14px);
+  margin-top: 56px;
+}
 .cta-band-inner {
   display: flex; align-items: center; justify-content: space-between;
   gap: 20px; flex-wrap: wrap; padding-block: 34px;
@@ -685,7 +704,24 @@ img { max-width: 100%; display: block; }
 }
 
 /* -- Band merah -- */
-.red-band { background: var(--c-red); color: #fff; padding-block: 64px; }
+.red-band {
+  background: linear-gradient(115deg, var(--c-red) 60%, #8f0b11 60%);
+  color: #fff; padding-block: 64px; overflow: hidden;
+}
+.eyebrow-pill {
+  display: inline-block;
+  font-size: .72rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--c-gold);
+  background: rgba(0, 0, 0, .35);
+  padding: 7px 15px; border-radius: 6px;
+  margin-bottom: 16px;
+}
+.red-band-ring {
+  display: grid; place-items: center;
+  border: 2px dashed rgba(255, 201, 33, .55);
+  border-radius: 50%; padding: 30px;
+  margin-inline: auto; width: fit-content;
+}
 .red-band-inner {
   display: grid; grid-template-columns: 1.4fr .6fr;
   align-items: center; gap: 36px;
@@ -696,7 +732,9 @@ img { max-width: 100%; display: block; }
 
 @media (max-width: 767.98px) {
   .red-band-inner { grid-template-columns: 1fr; }
-  .red-band-mascot { order: -1; width: 140px; margin-inline: 0; }
+  .red-band-ring { order: -1; margin-inline: 0; padding: 20px; }
+  .red-band-mascot { width: 140px; margin-inline: 0; }
+  .red-band { background: linear-gradient(180deg, var(--c-red) 55%, #8f0b11 55%); }
 }
 
 /* -- Langkah pesanan -- */
@@ -732,7 +770,15 @@ img { max-width: 100%; display: block; }
 }
 
 /* -- Footer -- */
-.site-footer { background: var(--c-dark); color: rgba(255, 253, 250, .74); padding-block: 56px 26px; }
+.site-footer { background: #160c0b; color: rgba(255, 253, 250, .74); padding-block: 56px 26px; position: relative; overflow: hidden; }
+.footer-ghost {
+  position: absolute; bottom: -34px; left: 0;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(6rem, 19vw, 17rem); line-height: 1;
+  color: rgba(255, 255, 255, .035);
+  pointer-events: none; user-select: none; white-space: nowrap;
+}
+.site-footer .shell-container { position: relative; }
 .brand-lockup--light .brand-name { color: #fff; }
 .brand-lockup--light .brand-name em { color: var(--c-gold); }
 .brand-lockup--light .brand-outlet { color: rgba(255, 253, 250, .6); }

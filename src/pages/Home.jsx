@@ -78,6 +78,7 @@ function MenuCard({ item }) {
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
         )}
+        <span className="menu-cat">{item.category}</span>
         {empty
           ? <span className="menu-flag">Habis</span>
           : low
@@ -89,7 +90,10 @@ function MenuCard({ item }) {
           <h3>{item.name}</h3>
           <span className="menu-price">{formatIDR(item.price)}</span>
         </div>
-        <p>{item.desc}</p>
+        <p className="menu-desc">{item.desc}</p>
+        {!empty && low && (
+          <span className="menu-stock">Sisa {item.stock} porsi — cepat habis!</span>
+        )}
         <button
           type="button"
           className="menu-add"

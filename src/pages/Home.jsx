@@ -8,7 +8,7 @@ import Toast from '../components/customer/Toast.jsx';
 import Faq from '../components/customer/Faq.jsx';
 import useReveal from '../lib/useReveal.js';
 import { CartProvider, useCart, formatIDR } from '../lib/cart.jsx';
-import { useProducts, isEmpty } from '../lib/products.jsx';
+import { useProducts, isEmpty, isLow } from '../lib/products.jsx';
 import { flyToCart } from '../lib/flyToCart.js';
 import {
   IconDineIn,
@@ -46,6 +46,7 @@ function MenuCard({ item }) {
   const { add, notify } = useCart();
   const FallbackIcon = MENU_ICONS[item.category] || IconDrumstick;
   const empty = isEmpty(item);
+  const low = isLow(item);
 
   const onAdd = (e) => {
     if (empty) return;
@@ -72,7 +73,11 @@ function MenuCard({ item }) {
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
         )}
-        {empty && <span className="menu-flag">Habis</span>}
+        {empty
+          ? <span className="menu-flag">Habis</span>
+          : low
+            ? <span className="menu-flag menu-flag--warn">Stok menipis</span>
+            : null}
       </div>
       <div className="menu-body">
         <div className="menu-head">

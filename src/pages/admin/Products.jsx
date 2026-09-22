@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
-import { useProducts, isEmpty, CATEGORIES } from '../../lib/products.jsx';
+import { useProducts, isEmpty, isLow, CATEGORIES } from '../../lib/products.jsx';
 import { IconPlus, IconSearch, IconBox } from '../../components/admin/icons.jsx';
 
-const EMPTY_FORM = { id: '', name: '', category: 'Ayam', price: '', stock: '', desc: '', image: '' };
+const EMPTY_FORM = { id: '', name: '', category: 'Ayam', price: '', stock: '', low: '20', desc: '', image: '' };
 
 // Tampil "15.000", simpan "15000" (digit saja, tanpa titik).
 function formatRibuan(value) {
@@ -30,6 +30,16 @@ export default function Products() {
     `${p.name} ${p.category}`.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const knownCategories = [...new Set([...CATEGORIES, ...products.map((p) => p.category)])];
+
+  // Tutup popup dengan tombol Escape.
+  useEffect(() => {
+    if (!formOpen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setFormOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [formOpen]);
+
   const openAdd = () => {
     setForm(EMPTY_FORM);
     setPhotoFile(null);
@@ -45,6 +55,7 @@ export default function Products() {
       category: product.category,
       price: String(product.price),
       stock: String(product.stock),
+      low: String(product.lowAt || 20),
       desc: product.desc || '',
       image: product.image || '',
     });
@@ -93,8 +104,9 @@ export default function Products() {
         id: form.id || undefined,
         name: form.name.trim(),
         category: form.category,
-        price: Math.round(Number(form.price)),
-        stock: Math.max(0, Math.round(Number(form.stock) || 0)),
+      price: Math.round(Number(form.price)),
+      stock: Math.max(0, Math.round(Number(form.stock) || 0)),
+      lowAt: Math.max(0, Math.round(Number(form.low) || 20)),
         desc: form.desc.trim(),
         image: form.image,
       },
@@ -154,7 +166,11 @@ export default function Products() {
         )}
 
         {formOpen && configured && (
-          <section className="panel" aria-label="Formulir produk">
+          <div
+            className="modal-scrim"
+            onClick={(e) => { if (e.target === e.currentTarget) setFormOpen(false); }}
+          >
+          <section className="modal" role="dialog" aria-modal="true" aria-label={form.id ? 'Ubah produk' : 'Produk baru'}>
             <div className="panel-head">
               <h3>{form.id ? 'Ubah produk' : 'Produk baru'}</h3>
               <span className="panel-meta">Tersimpan ke database + landing</span>
@@ -166,10 +182,18 @@ export default function Products() {
                   <input type="text" value={form.name} onChange={set('name')} placeholder="cth: Ayam Goreng Original" maxLength={60} />
                 </label>
                 <label className="form-field">
-                  <span>Kategori</span>
-                  <select value={form.category} onChange={set('category')}>
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <span>Kategori (bisa baru)</span>
+                  <input
+                    type="text"
+                    list="kategori-list"
+                    value={form.category}
+                    onChange={set('category')}
+                    placeholder="cth: Ayam"
+                    maxLength={30}
+                  />
+                  <datalist id="kategori-list">
+                    {knownCategories.map((c) => <option key={c} value={c} />)}
+                  </datalist>
                 </label>
                 <label className="form-field">
                   <span>Harga (Rp) *</span>
@@ -187,6 +211,10 @@ export default function Products() {
                 <label className="form-field">
                   <span>Stok (porsi)</span>
                   <input type="number" min="0" step="1" value={form.stock} onChange={set('stock')} placeholder="50" />
+                </label>
+                <label className="form-field">
+                  <span>Batas menipis</span>
+                  <input type="number" min="0" step="1" value={form.low} onChange={set('low')} placeholder="20" />
                 </label>
                 <label className="form-field form-field--full">
                   <span>Deskripsi</span>
@@ -217,6 +245,7 @@ export default function Products() {
               </div>
             </form>
           </section>
+          </div>
         )}
 
         {configured && status !== 'error' && (
@@ -254,10 +283,11 @@ export default function Products() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map((p) => {
-                      const empty = isEmpty(p);
-                      return (
-                        <tr key={p.id} className={empty ? 'row-danger' : ''}>
+                  {filtered.map((p) => {
+                    const empty = isEmpty(p);
+                    const low = isLow(p);
+                    return (
+                      <tr key={p.id} className={empty ? 'row-danger' : low ? 'row-warning' : ''}>
                           <td>
                             <div className="product-cell">
                               <div className="product-image">
@@ -273,7 +303,9 @@ export default function Products() {
                           <td>
                             {empty
                               ? <span className="status-badge badge-danger">Habis</span>
-                              : <span className="status-badge badge-success">Tersedia</span>}
+                              : low
+                                ? <span className="status-badge badge-warning">Menipis</span>
+                                : <span className="status-badge badge-success">Tersedia</span>}
                           </td>
                           <td>
                             <div className="action-buttons">

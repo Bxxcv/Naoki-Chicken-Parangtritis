@@ -369,6 +369,26 @@ img { max-width: 100%; display: block; }
     text-transform: uppercase;
     padding: 6px 12px; border-radius: 999px;
   }
+  .menu-flag--warn { background: var(--c-gold); color: var(--c-dark); }
+
+/* -- Popup modal admin -- */
+.modal-scrim {
+  position: fixed; inset: 0; z-index: 80;
+  background: rgba(20, 12, 11, .5);
+  display: grid; place-items: center;
+  padding: 16px;
+  animation: modal-in .25s cubic-bezier(.22,1,.36,1);
+}
+.modal {
+  background: #fff; border-radius: 16px;
+  width: min(600px, 100%);
+  max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px);
+  overflow-y: auto; padding: 22px 22px 24px;
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(12px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
   .menu-add:disabled { background: #e5e0da; color: var(--c-muted); cursor: not-allowed; }
   .menu-body {
     padding: 16px;
@@ -1053,6 +1073,7 @@ img { max-width: 100%; display: block; }
   .admin-sidebar { transition: none; }
   .cart-drawer, .cart-scrim, .site-nav-links { transition: none; }
   .toast { animation: none; }
+  .modal-scrim { animation: none; }
   .nav-cart-badge.is-pop { animation: none; }
   * { scroll-behavior: auto !important; }
 }

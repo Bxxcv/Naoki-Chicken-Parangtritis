@@ -21,6 +21,13 @@ export function isEmpty(product) {
   return (Number(product.stock) || 0) <= 0;
 }
 
+// Menipis ⟺ masih ada tapi stok ≤ ambang (default 20, bisa per produk).
+export function isLow(product) {
+  if (!product || isEmpty(product)) return false;
+  const at = Number(product.lowAt) || 20;
+  return Number(product.stock) <= at;
+}
+
 function toUI(row) {
   return {
     id: row.id,
@@ -30,6 +37,7 @@ function toUI(row) {
     category: (row.categories && row.categories.name) || 'Ayam',
     image: row.image_url || '',
     stock: Number(row.stock_qty) || 0,
+    lowAt: Number(row.low_stock_threshold) || 20,
     is_available: row.is_available !== false,
   };
 }
@@ -73,7 +81,7 @@ export function ProductsProvider({ children }) {
 
     const { data, error: listError } = await supabase
       .from('products')
-      .select('id,name,description,image_url,price_idr,stock_qty,is_available,categories(name)')
+      .select('id,name,description,image_url,price_idr,stock_qty,low_stock_threshold,is_available,categories(name)')
       .eq('outlet_id', outlet.id)
       .order('name', { ascending: true });
 
@@ -149,6 +157,7 @@ export function ProductsProvider({ children }) {
         price_idr: Math.round(Number(product.price)),
         stock_mode: 'finite',
         stock_qty: Math.max(0, Math.round(Number(product.stock) || 0)),
+        low_stock_threshold: Math.max(0, Math.round(Number(product.lowAt) || 20)),
         is_available: true,
       };
 

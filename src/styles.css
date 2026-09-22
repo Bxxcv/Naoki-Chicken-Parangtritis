@@ -257,6 +257,8 @@ img { max-width: 100%; display: block; }
 .section-link {
   display: inline-flex; align-items: center; gap: 7px;
   color: var(--c-red); font-weight: 600; font-size: .9rem; text-decoration: none;
+  background: none; border: 0; cursor: pointer;
+  font-family: var(--font-body); padding: 0;
 }
 .section-link:hover { color: var(--c-red-dark); }
 .section-note { margin-top: 22px; color: var(--c-muted); font-size: .86rem; }

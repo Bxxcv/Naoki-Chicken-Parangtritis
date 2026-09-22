@@ -9,15 +9,15 @@ import Faq from '../components/customer/Faq.jsx';
 import useReveal from '../lib/useReveal.js';
 import { CartProvider, useCart, formatIDR } from '../lib/cart.jsx';
 import { useProducts, isEmpty, isLow } from '../lib/products.jsx';
+import { categoryKey } from '../lib/categories.js';
+import { CATEGORY_COMPONENTS } from '../components/customer/icons.jsx';
 import { flyToCart } from '../lib/flyToCart.js';
 import {
   IconDineIn,
   IconTakeaway,
   IconPickup,
   IconDelivery,
-  IconDrumstick,
   IconBag,
-  IconCup,
   IconSearch,
   IconClock,
   IconArrowRight,
@@ -35,21 +35,16 @@ const CHANNELS = [
 ];
 
 const CATEGORY_TONES = ['cream', 'gold', 'plain'];
-const CATEGORY_ICONS = [IconDrumstick, IconBag, IconCup];
 
 function categoryIcon(name, index) {
-  const lower = (name || '').toLowerCase();
-  if (lower.includes('ayam')) return IconDrumstick;
-  if (lower.includes('paket')) return IconBag;
-  if (lower.includes('minum')) return IconCup;
-  return CATEGORY_ICONS[index % CATEGORY_ICONS.length];
+  return CATEGORY_COMPONENTS[categoryKey(name)] || IconBag;
 }
 
-const MENU_ICONS = { Ayam: IconDrumstick, Paket: IconBag, Minuman: IconCup };
+const MENU_FALLBACK = IconBag;
 
 function MenuCard({ item }) {
   const { add, notify } = useCart();
-  const FallbackIcon = MENU_ICONS[item.category] || IconDrumstick;
+  const FallbackIcon = CATEGORY_COMPONENTS[categoryKey(item.category)] || MENU_FALLBACK;
   const empty = isEmpty(item);
   const low = isLow(item);
 
@@ -244,7 +239,13 @@ export default function Home() {
                   : `${products.length} pilihan siap dinikmati — geser untuk jelajahi.`}
               </p>
             </div>
-            <a href="#menu-grid" className="section-link">Lihat semua <IconArrowRight size={16} /></a>
+            <button
+              type="button"
+              className="section-link"
+              onClick={() => { setCatFilter('Semua'); document.getElementById('menu-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+            >
+              Lihat semua <IconArrowRight size={16} />
+            </button>
           </div>
 
           {categoryCards.length > 0 && (

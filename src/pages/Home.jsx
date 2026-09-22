@@ -34,11 +34,16 @@ const CHANNELS = [
   { icon: IconDelivery, label: 'Diantar' },
 ];
 
-const CATEGORIES = [
-  { no: '01', icon: IconDrumstick, title: 'Ayam', desc: 'Pilihan untuk pencinta renyah.', tone: 'cream' },
-  { no: '02', icon: IconBag, title: 'Paket', desc: 'Nikmati dalam satu pilihan.', tone: 'gold' },
-  { no: '03', icon: IconCup, title: 'Minuman', desc: 'Lengkapi waktu makan Anda.', tone: 'plain' },
-];
+const CATEGORY_TONES = ['cream', 'gold', 'plain'];
+const CATEGORY_ICONS = [IconDrumstick, IconBag, IconCup];
+
+function categoryIcon(name, index) {
+  const lower = (name || '').toLowerCase();
+  if (lower.includes('ayam')) return IconDrumstick;
+  if (lower.includes('paket')) return IconBag;
+  if (lower.includes('minum')) return IconCup;
+  return CATEGORY_ICONS[index % CATEGORY_ICONS.length];
+}
 
 const MENU_ICONS = { Ayam: IconDrumstick, Paket: IconBag, Minuman: IconCup };
 
@@ -169,6 +174,23 @@ export default function Home() {
     ? products
     : products.filter((p) => p.category === catFilter);
 
+  // Kartu kategori SELALU dari data asli (tidak statis) agar klik
+  // tidak pernah menghasilkan daftar kosong.
+  const categoryCards = useMemo(() => {
+    const groups = {};
+    products.forEach((p) => {
+      const key = p.category || 'Lainnya';
+      groups[key] = (groups[key] || 0) + 1;
+    });
+    return Object.keys(groups).sort().map((title, i) => ({
+      no: String(i + 1).padStart(2, '0'),
+      icon: categoryIcon(title, i),
+      title,
+      desc: `${groups[title]} pilihan menu.`,
+      tone: CATEGORY_TONES[i % CATEGORY_TONES.length],
+    }));
+  }, [products]);
+
   const pickCategory = (title) => {
     setCatFilter(title);
     document.getElementById('menu-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -223,25 +245,27 @@ export default function Home() {
             <a href="#menu" className="section-link">Semua menu <IconArrowRight size={16} /></a>
           </div>
 
-          <div className="category-grid">
-            {CATEGORIES.map(({ no, icon: Icon, title, desc, tone }) => (
-              <button
-                type="button"
-                className={`category-card category-card--${tone}`}
-                key={title}
-                onClick={() => pickCategory(title)}
-                aria-label={`Lihat menu kategori ${title}`}
-              >
-                <span className="category-icon"><Icon size={30} /></span>
-                <span className="category-no">{no}</span>
-                <div className="category-row">
-                  <h3>{title}</h3>
-                  <IconArrowRight size={19} />
-                </div>
-                <p>{desc}</p>
-              </button>
-            ))}
-          </div>
+          {categoryCards.length > 0 && (
+            <div className="category-grid">
+              {categoryCards.map(({ no, icon: Icon, title, desc, tone }) => (
+                <button
+                  type="button"
+                  className={`category-card category-card--${tone}`}
+                  key={title}
+                  onClick={() => pickCategory(title)}
+                  aria-label={`Lihat menu kategori ${title}`}
+                >
+                  <span className="category-icon"><Icon size={30} /></span>
+                  <span className="category-no">{no}</span>
+                  <div className="category-row">
+                    <h3>{title}</h3>
+                    <IconArrowRight size={19} />
+                  </div>
+                  <p>{desc}</p>
+                </button>
+              ))}
+            </div>
+          )}
 
           {status === 'loading' ? (
             <p className="section-note">Memuat menu terbaru dari outlet...</p>

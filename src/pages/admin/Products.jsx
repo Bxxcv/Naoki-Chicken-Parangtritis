@@ -20,6 +20,7 @@ function formatPrice(price) {
 export default function Products() {
   const { products, status, error, reload, save, remove, configured } = useProducts();
   const [search, setSearch] = useState('');
+  const [catFilter, setCatFilter] = useState('Semua');
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [photoFile, setPhotoFile] = useState(null);
@@ -27,9 +28,14 @@ export default function Products() {
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const filtered = products.filter((p) =>
-    `${p.name} ${p.category}`.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = products.filter((p) => {
+    const matchSearch = `${p.name} ${p.category}`.toLowerCase().includes(search.toLowerCase());
+    const matchCat = catFilter === 'Semua' || p.category === catFilter;
+    return matchSearch && matchCat;
+  });
+
+  const catCounts = {};
+  products.forEach((p) => { catCounts[p.category] = (catCounts[p.category] || 0) + 1; });
 
   const knownCategories = [...new Set([...CATEGORIES, ...products.map((p) => p.category)])];
 
@@ -263,6 +269,20 @@ export default function Products() {
                 <input type="search" placeholder="Cari nama produk..." value={search} onChange={(e) => setSearch(e.target.value)} />
                 <span className="visually-hidden">Cari produk</span>
               </label>
+            </div>
+            <div className="chip-row" role="tablist" aria-label="Filter kategori produk">
+              {['Semua', ...Object.keys(catCounts).sort()].map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  role="tab"
+                  aria-selected={catFilter === cat}
+                  className={`chip${catFilter === cat ? ' is-active' : ''}`}
+                  onClick={() => setCatFilter(cat)}
+                >
+                  {cat}{cat !== 'Semua' ? ` (${catCounts[cat]})` : ''}
+                </button>
+              ))}
             </div>
 
             {status === 'loading' ? (

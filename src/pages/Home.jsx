@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import Navbar from '../components/customer/Navbar.jsx';
 import BrandLogo from '../components/customer/BrandLogo.jsx';
 import HeroVideo from '../components/customer/HeroVideo.jsx';
@@ -150,6 +151,23 @@ export default function Home() {
   const [bandRef, bandVisible] = useReveal(0.2);
   const [stepRef, stepVisible] = useReveal(0.15);
   const { products, status } = useProducts();
+  const [catFilter, setCatFilter] = useState('Semua');
+
+  const catTabs = useMemo(() => {
+    const counts = {};
+    products.forEach((p) => { counts[p.category] = (counts[p.category] || 0) + 1; });
+    return [{ name: 'Semua', count: products.length },
+      ...Object.keys(counts).sort().map((name) => ({ name, count: counts[name] }))];
+  }, [products]);
+
+  const visibleProducts = catFilter === 'Semua'
+    ? products
+    : products.filter((p) => p.category === catFilter);
+
+  const pickCategory = (title) => {
+    setCatFilter(title);
+    document.getElementById('menu-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <CartProvider>
@@ -202,7 +220,13 @@ export default function Home() {
 
           <div className="category-grid">
             {CATEGORIES.map(({ no, icon: Icon, title, desc, tone }) => (
-              <article className={`category-card category-card--${tone}`} key={title}>
+              <button
+                type="button"
+                className={`category-card category-card--${tone}`}
+                key={title}
+                onClick={() => pickCategory(title)}
+                aria-label={`Lihat menu kategori ${title}`}
+              >
                 <span className="category-icon"><Icon size={30} /></span>
                 <span className="category-no">{no}</span>
                 <div className="category-row">
@@ -210,7 +234,7 @@ export default function Home() {
                   <IconArrowRight size={19} />
                 </div>
                 <p>{desc}</p>
-              </article>
+              </button>
             ))}
           </div>
 
@@ -220,11 +244,29 @@ export default function Home() {
             <p className="section-note">Menu sedang disiapkan outlet dan akan tampil di sini setelah dikunci.</p>
           ) : (
             <>
-              <div className="menu-grid">
-                {products.map((item) => (
-                  <MenuCard key={item.id} item={item} />
+              <div className="cat-tabs" role="tablist" aria-label="Filter kategori menu">
+                {catTabs.map(({ name, count }) => (
+                  <button
+                    key={name}
+                    type="button"
+                    role="tab"
+                    aria-selected={catFilter === name}
+                    className={`cat-tab${catFilter === name ? ' is-active' : ''}`}
+                    onClick={() => setCatFilter(name)}
+                  >
+                    {name} <span className="cat-count">{count}</span>
+                  </button>
                 ))}
               </div>
+              {visibleProducts.length === 0 ? (
+                <p className="section-note">Belum ada menu di kategori ini.</p>
+              ) : (
+                <div className="menu-grid" id="menu-grid">
+                  {visibleProducts.map((item) => (
+                    <MenuCard key={item.id} item={item} />
+                  ))}
+                </div>
+              )}
               <p className="section-note">Harga mengikuti data resmi outlet.</p>
             </>
           )}

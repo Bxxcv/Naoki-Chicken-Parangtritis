@@ -1,19 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
+import EmptyState from '../../components/admin/EmptyState.jsx';
+import { useSettings, DEFAULTS } from '../../lib/settings.jsx';
+import { IconBox } from '../../components/admin/icons.jsx';
 
-const CHANNEL_KEYS = [
-  ['dine', 'Makan di tempat'],
+// Hari tampil Sen–Min, simpan format JS getDay (Min=0).
+const DAYS = [
+  [1, 'Sen'], [2, 'Sel'], [3, 'Rab'], [4, 'Kam'],
+  [5, 'Jum'], [6, 'Sab'], [0, 'Min'],
+];
+
+const CHANNELS = [
+  ['dine_in', 'Makan di tempat'],
   ['takeaway', 'Bawa pulang'],
   ['pickup', 'Ambil sendiri'],
   ['delivery', 'Diantar'],
 ];
 
-function Toggle({ id, checked, onChange, label }) {
+function Toggle({ checked, onChange, label }) {
   return (
     <button
       type="button"
-      id={id}
       role="switch"
       aria-checked={checked}
       aria-label={label}
@@ -25,81 +33,206 @@ function Toggle({ id, checked, onChange, label }) {
   );
 }
 
+function parseDays(raw) {
+  try {
+    const arr = JSON.parse(raw || '[]');
+    return Array.isArray(arr) ? arr.filter((d) => Number.isInteger(d)) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function Settings() {
-  // State lokal saja: belum ada Supabase, jadi perubahan di sini belum tersimpan.
-  const [channels, setChannels] = useState({ dine: true, takeaway: true, pickup: false, delivery: false });
-  const [sound, setSound] = useState(true);
+  const { settings, status, error, reload, save, configured } = useSettings();
+  const [draft, setDraft] = useState(DEFAULTS);
+  const [formError, setFormError] = useState('');
+  const [savedAt, setSavedAt] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (status === 'ready') {
+      setDraft({ ...DEFAULTS, ...settings });
+      setSavedAt('');
+    }
+  }, [status, settings]);
+
+  const set = (key) => (e) => setDraft((prev) => ({ ...prev, [key]: e.target.value }));
+  const setBool = (key) => (value) => setDraft((prev) => ({ ...prev, [key]: value ? 'true' : 'false' }));
+
+  const toggleDay = (day) => {
+    const days = parseDays(draft.open_days);
+    const next = days.includes(day) ? days.filter((d) => d !== day) : [...days, day];
+    setDraft((prev) => ({ ...prev, open_days: JSON.stringify(next) }));
+  };
+
+  const onSave = async () => {
+    setFormError('');
+    setSaving(true);
+    const result = await save({
+      outlet_name: draft.outlet_name.trim() || DEFAULTS.outlet_name,
+      address: draft.address.trim(),
+      phone: draft.phone.trim(),
+      open_time: draft.open_time,
+      close_time: draft.close_time,
+      open_days: draft.open_days,
+      dine_in: draft.dine_in,
+      takeaway: draft.takeaway,
+      pickup: draft.pickup,
+      delivery: draft.delivery,
+      force_closed: draft.force_closed,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setFormError(result.error);
+      return;
+    }
+    setSavedAt(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
+  };
 
   return (
     <>
       <PageHeader
         eyebrow="Operasional outlet"
         title="Pengaturan"
-        actions={<Link to="/" className="btn-outline">Lihat toko</Link>}
+        actions={
+          <>
+            <Link to="/" className="btn-outline">Lihat toko</Link>
+            <button type="button" className="btn-primary" onClick={onSave} disabled={!configured || saving || status !== 'ready'}>
+              {saving ? 'Menyimpan...' : 'Simpan perubahan'}
+            </button>
+          </>
+        }
       />
 
       <div className="admin-body">
-        <div className="grid-2">
-          <div className="stack">
-            <section className="panel">
-              <div className="panel-head"><h3>Kanal pesanan</h3></div>
-              <ul className="setting-list">
-                {CHANNEL_KEYS.map(([key, label]) => (
-                  <li key={key}>
-                    <span>{label}</span>
-                    <Toggle
-                      id={`kanal-${key}`}
-                      label={label}
-                      checked={channels[key]}
-                      onChange={(value) => setChannels((prev) => ({ ...prev, [key]: value }))}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </section>
+        {!configured && (
+          <section className="panel">
+            <EmptyState
+              icon={<IconBox size={26} />}
+              title="Backend belum terhubung"
+              desc="Isi env Supabase di Vercel dan jalankan migrasi 0004."
+            />
+          </section>
+        )}
 
-            <section className="panel">
-              <div className="panel-head"><h3>Notifikasi</h3></div>
-              <p className="panel-desc">Atur pemberitahuan pesanan baru, stok menipis, dan penutupan sesi kas.</p>
-              <ul className="setting-list">
-                <li>
-                  <span>Suara pesanan baru</span>
-                  <Toggle id="suara" label="Suara pesanan baru" checked={sound} onChange={setSound} />
-                </li>
-              </ul>
-            </section>
-          </div>
+        {configured && status === 'error' && (
+          <section className="panel">
+            <EmptyState
+              icon={<IconBox size={26} />}
+              title="Pengaturan tidak dapat dimuat"
+              desc={error || 'Periksa koneksi dan migrasi database.'}
+            />
+            <div className="form-actions">
+              <button type="button" className="btn-outline" onClick={reload}>Coba lagi</button>
+            </div>
+          </section>
+        )}
 
-          <div className="stack">
-            <section className="panel">
-              <div className="panel-head"><h3>Informasi outlet</h3></div>
-              <div className="field-stack">
-                <label className="field">
-                  <span className="visually-hidden">Nama outlet</span>
-                  <input type="text" defaultValue="Naoki Chicken Parangtritis" />
-                </label>
-                <label className="field">
-                  <span className="visually-hidden">Alamat outlet</span>
-                  <input type="text" placeholder="Alamat outlet" />
-                </label>
-                <label className="field">
-                  <span className="visually-hidden">Nomor kontak</span>
-                  <input type="tel" placeholder="Nomor kontak" />
-                </label>
+        {configured && status !== 'error' && (
+          <>
+            {savedAt && (
+              <div className="alert-bar alert-bar--ok" role="status">
+                Tersimpan {savedAt} — landing ikut diperbarui.
               </div>
-              <button type="button" className="btn-primary" disabled>Simpan perubahan</button>
-              <p className="panel-desc mt-2">Penyimpanan aktif setelah outlet terhubung ke basis data.</p>
-            </section>
+            )}
+            {formError && <p className="form-error" role="alert">{formError}</p>}
 
-            <section className="panel">
-              <div className="panel-head"><h3>Status sistem</h3></div>
-              <p className="admin-status-line">
-                <span className="dot dot--warn" />
-                Mode prototipe — belum terhubung data outlet
-              </p>
-            </section>
-          </div>
-        </div>
+            <div className="grid-2">
+              <div className="stack">
+                <section className="panel">
+                  <div className="panel-head"><h3>Status outlet</h3></div>
+                  <ul className="setting-list">
+                    <li>
+                      <span>Tutup sementara<br /><small className="field-hint">Menimpa jadwal — landing tampil “Tutup”.</small></span>
+                      <Toggle
+                        checked={draft.force_closed === 'true'}
+                        onChange={setBool('force_closed')}
+                        label="Tutup sementara outlet"
+                      />
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="panel">
+                  <div className="panel-head"><h3>Jam &amp; hari buka</h3></div>
+                  <div className="form-grid">
+                    <label className="form-field">
+                      <span>Buka pukul</span>
+                      <input type="time" value={draft.open_time} onChange={set('open_time')} />
+                    </label>
+                    <label className="form-field">
+                      <span>Tutup pukul</span>
+                      <input type="time" value={draft.close_time} onChange={set('close_time')} />
+                    </label>
+                  </div>
+                  <div className="chip-row" role="group" aria-label="Hari buka" style={{ marginTop: 14, marginBottom: 0 }}>
+                    {DAYS.map(([day, label]) => {
+                      const on = parseDays(draft.open_days).includes(day);
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          role="switch"
+                          aria-checked={on}
+                          aria-label={`Buka hari ${label}`}
+                          className={`chip${on ? ' is-active' : ''}`}
+                          onClick={() => toggleDay(day)}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                <section className="panel">
+                  <div className="panel-head"><h3>Kanal pesanan</h3></div>
+                  <ul className="setting-list">
+                    {CHANNELS.map(([key, label]) => (
+                      <li key={key}>
+                        <span>{label}</span>
+                        <Toggle
+                          checked={draft[key] === 'true'}
+                          onChange={setBool(key)}
+                          label={label}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </div>
+
+              <div className="stack">
+                <section className="panel">
+                  <div className="panel-head"><h3>Informasi outlet</h3></div>
+                  <div className="field-stack">
+                    <label className="form-field">
+                      <span>Nama outlet</span>
+                      <input type="text" value={draft.outlet_name} onChange={set('outlet_name')} maxLength={60} />
+                    </label>
+                    <label className="form-field">
+                      <span>Alamat outlet</span>
+                      <input type="text" value={draft.address} onChange={set('address')} placeholder="Jl. Parangtritis ..." maxLength={160} />
+                    </label>
+                    <label className="form-field">
+                      <span>Nomor kontak</span>
+                      <input type="tel" value={draft.phone} onChange={set('phone')} placeholder="08..." maxLength={20} />
+                    </label>
+                  </div>
+                  <p className="panel-desc mt-2">Tampil di footer landing setelah disimpan.</p>
+                </section>
+
+                <section className="panel">
+                  <div className="panel-head"><h3>Status sistem</h3></div>
+                  <p className="admin-status-line">
+                    <span className="dot dot--ready" />
+                    {status === 'ready' ? 'Terhubung database outlet' : 'Memuat...'}
+                  </p>
+                </section>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </>
   );

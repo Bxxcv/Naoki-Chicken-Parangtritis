@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProductsProvider } from './lib/products.jsx';
 import { AuthProvider, useAuth } from './lib/auth.jsx';
+import { SettingsProvider } from './lib/settings.jsx';
 import Home from './pages/Home.jsx';
 import AdminLayout from './components/admin/AdminLayout.jsx';
 import Dashboard from './pages/admin/Dashboard.jsx';
@@ -24,6 +25,7 @@ function App() {
   return (
     <ProductsProvider>
     <AuthProvider>
+    <SettingsProvider>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route
@@ -46,6 +48,7 @@ function App() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </SettingsProvider>
     </AuthProvider>
     </ProductsProvider>
   );

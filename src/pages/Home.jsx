@@ -9,6 +9,7 @@ import Faq from '../components/customer/Faq.jsx';
 import useReveal from '../lib/useReveal.js';
 import { CartProvider, useCart, formatIDR } from '../lib/cart.jsx';
 import { useProducts, isEmpty, isLow } from '../lib/products.jsx';
+import { useSettings, openInfo } from '../lib/settings.jsx';
 import { categoryKey } from '../lib/categories.js';
 import { CATEGORY_COMPONENTS } from '../components/customer/icons.jsx';
 import { flyToCart } from '../lib/flyToCart.js';
@@ -182,6 +183,8 @@ export default function Home() {
   const [bandRef, bandVisible] = useReveal(0.2);
   const [stepRef, stepVisible] = useReveal(0.15);
   const { products, status } = useProducts();
+  const { settings, status: settingsStatus } = useSettings();
+  const info = settingsStatus === 'ready' ? openInfo(settings) : null;
   const [catFilter, setCatFilter] = useState('Semua');
 
   const catTabs = useMemo(() => {
@@ -221,8 +224,17 @@ export default function Home() {
         </div>
         <div className="shell-container hero-content">
           <span className="hero-eyebrow">
-            <IconPin size={16} />
-            Dari Parangtritis, untuk Anda
+            {info ? (
+              <>
+                <span className={`open-dot${info.open ? '' : ' is-closed'}`} aria-hidden="true" />
+                {info.text}
+              </>
+            ) : (
+              <>
+                <IconPin size={16} />
+                Dari Parangtritis, untuk Anda
+              </>
+            )}
           </span>
           <h1>
             Naoki Chicken
@@ -431,8 +443,10 @@ export default function Home() {
             <div className="footer-col">
               <h4>Kunjungi &amp; hubungi</h4>
               <p className="footer-note">
-                Naoki Chicken Parangtritis<br />
-                Alamat, jam buka, dan kontak resmi menunggu konfirmasi outlet.
+                {settings.outlet_name || 'Naoki Chicken Parangtritis'}<br />
+                {settings.address || 'Alamat menunggu konfirmasi outlet.'}
+                {settings.phone ? (<><br />{settings.phone}</>) : null}
+                {!settings.address && !settings.phone ? (<><br />Jam buka dan kontak resmi menyusul.</>) : null}
               </p>
               <a
                 className="footer-maps"

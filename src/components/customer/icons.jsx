@@ -153,3 +153,47 @@ export function IconMenuBars(props) {
     </IconBase>
   );
 }
+
+export function IconClose(props) {
+  return (
+    <IconBase {...props}>
+      <path d="M6 6l12 12M18 6 6 18" />
+    </IconBase>
+  );
+}
+
+export function IconPlus(props) {
+  return (
+    <IconBase {...props}>
+      <path d="M12 5.5v13M5.5 12h13" />
+    </IconBase>
+  );
+}
+
+export function IconInstagram(props) {
+  return (
+    <IconBase {...props}>
+      <rect x="4" y="4" width="16" height="16" rx="4.5" />
+      <circle cx="12" cy="12" r="3.6" />
+      <circle cx="16.8" cy="7.2" r="1.1" fill="currentColor" stroke="none" />
+    </IconBase>
+  );
+}
+
+export function IconTiktok(props) {
+  return (
+    <IconBase {...props}>
+      <path d="M10 4.5V15a3.75 3.75 0 1 0 3.75-3.75" />
+      <path d="M10 8a5.25 5.25 0 0 0 5.5 1.5V6.8A3.4 3.4 0 0 1 12 5" />
+    </IconBase>
+  );
+}
+
+export function IconWhatsapp(props) {
+  return (
+    <IconBase {...props}>
+      <path d="M12 3.5a8.5 8.5 0 0 0-7.3 12.8l-1.2 4.2 4.3-1.1A8.5 8.5 0 1 0 12 3.5Z" />
+      <path d="M9.2 8.6c.4 2.7 3 5.3 5.7 5.7l.9-1.3 1.9 1c-.3 1.3-1.1 1.9-2.3 1.6-3.3-.8-6.6-4.1-7.4-7.4-.3-1.2.3-2 1.6-2.3l1 1.9Z" />
+    </IconBase>
+  );
+}

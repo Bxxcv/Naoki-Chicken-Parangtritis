@@ -70,4 +70,8 @@ export const IconBox = (p) => (<IconBase {...p}><path d="m12 3 8 4.2v9.6L12 21l-
 export const IconBulb = (p) => (<IconBase {...p}><path d="M9 17.5h6M10 21h4" /><path d="M12 3a6 6 0 0 0-3.4 10.9c.5.4.9 1 .9 1.6h5c0-.7.4-1.2.9-1.6A6 6 0 0 0 12 3Z" /></IconBase>);
 export const IconMenuBars = (p) => (<IconBase {...p}><path d="M4 7h16M4 12h16M4 17h16" /></IconBase>);
 export const IconClose = (p) => (<IconBase {...p}><path d="M6 6l12 12M18 6 6 18" /></IconBase>);
+export const IconEdit = (p) => (<IconBase {...p}><path d="M14.5 5.5 18.5 9.5 8.5 19.5H4.5V15.5Z" /><path d="m12.5 7.5 4 4" /></IconBase>);
+export const IconTrash = (p) => (<IconBase {...p}><path d="M4.5 6.5h15M9.5 6V4.5A1 1 0 0 1 10.5 3.5h3a1 1 0 0 1 1 1V6" /><path d="M6.5 6.5 7.3 20a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4l.8-13.5" /><path d="M10 10.5v6M14 10.5v6" /></IconBase>);
+export const IconEye = (p) => (<IconBase {...p}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="3" /></IconBase>);
+export const IconAlert = (p) => (<IconBase {...p}><path d="M12 4 2.8 19.5h18.4Z" /><path d="M12 10v4M12 17v.1" /></IconBase>);
 export const IconStore = (p) => (<IconBase {...p}><path d="M4 10 5.2 4h13.6L20 10" /><path d="M4 10v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9" /><path d="M4 10a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0" /></IconBase>);

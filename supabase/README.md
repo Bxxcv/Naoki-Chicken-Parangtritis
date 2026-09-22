@@ -10,3 +10,8 @@ Before applying a migration:
 5. only then deploy.
 
 Do not claim a migration is executed just because the file exists.
+
+## Files
+- `migrations/0001_mvp_schema_draft.sql` — skema awal (DRAFT).
+- `migrations/0002_products_backend.sql` — outlet + kategori + products
+  + bucket `product-images` + RLS (DRAFT). Jalankan manual di SQL Editor.

@@ -46,7 +46,6 @@ const ProductsContext = createContext(null);
 
 export function ProductsProvider({ children }) {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [status, setStatus] = useState(isSupabaseConfigured ? 'loading' : 'unconfigured');
   const [error, setError] = useState('');
 
@@ -77,7 +76,6 @@ export function ProductsProvider({ children }) {
       setStatus('error');
       setError('Outlet parangtritis belum ada — jalankan migrasi 0002 di Supabase.');
       setProducts([]);
-      setCategories([]);
       return;
     }
 
@@ -91,32 +89,10 @@ export function ProductsProvider({ children }) {
       setStatus('error');
       setError(`Gagal memuat produk: ${listError.message}`);
       setProducts([]);
-      setCategories([]);
       return;
     }
 
     setProducts((data || []).map(toUI));
-
-    const { data: catRows, error: catError } = await supabase
-      .from('categories')
-      .select('id,name,sort_order')
-      .eq('outlet_id', outlet.id)
-      .order('sort_order', { ascending: true })
-      .order('name', { ascending: true });
-
-    if (!catError) {
-      const counts = {};
-      (data || []).forEach((row) => {
-        const key = (row.categories && row.categories.name) || 'Ayam';
-        counts[key] = (counts[key] || 0) + 1;
-      });
-      setCategories((catRows || []).map((c, i) => ({
-        id: c.id,
-        name: c.name,
-        count: counts[c.name] || 0,
-        tone: ['cream', 'gold', 'plain'][i % 3],
-      })));
-    }
     setStatus('ready');
   }, []);
 
@@ -210,36 +186,9 @@ export function ProductsProvider({ children }) {
     return { ok: true };
   }, [reload]);
 
-  // Ganti nama kategori: satu baris categories, semua produk ikut otomatis.
-  const renameCategory = useCallback(async (id, name) => {
-    if (!supabase) return { ok: false, error: 'Backend belum terhubung.' };
-    const clean = (name || '').trim().slice(0, 30);
-    if (!clean) return { ok: false, error: 'Nama kategori wajib diisi.' };
-    const { error: updateError } = await supabase
-      .from('categories')
-      .update({ name: clean })
-      .eq('id', id);
-    if (updateError) return { ok: false, error: updateError.message };
-    await reload();
-    return { ok: true };
-  }, [reload]);
-
-  // Hapus kategori hanya bila kosong — cegah produk yatim.
-  const deleteCategory = useCallback(async (id) => {
-    if (!supabase) return { ok: false, error: 'Backend belum terhubung.' };
-    const target = categories.find((c) => c.id === id);
-    if (target && target.count > 0) {
-      return { ok: false, error: `Pindahkan/hapus ${target.count} produk dulu.` };
-    }
-    const { error: deleteError } = await supabase.from('categories').delete().eq('id', id);
-    if (deleteError) return { ok: false, error: deleteError.message };
-    await reload();
-    return { ok: true };
-  }, [categories, reload]);
-
   const value = useMemo(
-    () => ({ products, categories, status, error, reload, save, remove, renameCategory, deleteCategory, configured: isSupabaseConfigured }),
-    [products, categories, status, error, reload, save, remove, renameCategory, deleteCategory],
+    () => ({ products, status, error, reload, save, remove, configured: isSupabaseConfigured }),
+    [products, status, error, reload, save, remove],
   );
 
   return <ProductsContext.Provider value={value}>{children}</ProductsContext.Provider>;

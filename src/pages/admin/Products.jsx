@@ -4,7 +4,6 @@ import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
 import { useProducts, isEmpty, isLow, CATEGORIES } from '../../lib/products.jsx';
 import { IconPlus, IconSearch, IconBox } from '../../components/admin/icons.jsx';
-import { IconDrumstick, IconBag, IconCup } from '../../components/customer/icons.jsx';
 
 const EMPTY_FORM = { id: '', name: '', category: 'Ayam', price: '', stock: '', low: '20', desc: '', image: '' };
 
@@ -19,12 +18,9 @@ function formatPrice(price) {
 }
 
 export default function Products() {
-  const { products, categories, status, error, reload, save, remove, renameCategory, deleteCategory, configured } = useProducts();
+  const { products, status, error, reload, save, remove, configured } = useProducts();
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('Semua');
-  const [editingCatId, setEditingCatId] = useState('');
-  const [editingCatName, setEditingCatName] = useState('');
-  const [catError, setCatError] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [photoFile, setPhotoFile] = useState(null);
@@ -140,45 +136,6 @@ export default function Products() {
     if (!result.ok) window.alert(result.error);
   };
 
-  const startRenameCat = (cat) => {
-    setEditingCatId(cat.id);
-    setEditingCatName(cat.name);
-    setCatError('');
-  };
-
-  const submitRenameCat = async (cat) => {
-    const result = await renameCategory(cat.id, editingCatName);
-    if (!result.ok) {
-      setCatError(result.error);
-      return;
-    }
-    setEditingCatId('');
-    setEditingCatName('');
-    if (catFilter === cat.name) setCatFilter(editingCatName.trim());
-  };
-
-  const onDeleteCat = async (cat) => {
-    if (cat.count > 0) {
-      setCatError(`"${cat.name}" berisi ${cat.count} produk — pindahkan/hapus dulu.`);
-      return;
-    }
-    if (!window.confirm(`Hapus kategori "${cat.name}"?`)) return;
-    const result = await deleteCategory(cat.id);
-    if (!result.ok) {
-      setCatError(result.error);
-      return;
-    }
-    if (catFilter === cat.name) setCatFilter('Semua');
-  };
-
-  const catIcon = (name) => {
-    const lower = (name || '').toLowerCase();
-    if (lower.includes('ayam')) return IconDrumstick;
-    if (lower.includes('paket')) return IconBag;
-    if (lower.includes('minum')) return IconCup;
-    return IconBag;
-  };
-
   return (
     <>
       <PageHeader
@@ -212,63 +169,6 @@ export default function Products() {
             <div className="form-actions">
               <button type="button" className="btn-outline" onClick={reload}>Coba lagi</button>
             </div>
-          </section>
-        )}
-
-        {configured && status === 'ready' && (
-          <section className="panel">
-            <div className="panel-head">
-              <h3>Kelola kategori</h3>
-              <span className="panel-meta">{categories.length} kategori</span>
-            </div>
-            {categories.length === 0 ? (
-              <EmptyState
-                icon={<IconBox size={26} />}
-                title="Belum ada kategori"
-                desc="Kategori terbentuk otomatis saat produk pertama disimpan."
-              />
-            ) : (
-              <div className="cat-manage-grid">
-                {categories.map((cat) => {
-                  const Icon = catIcon(cat.name);
-                  const editing = editingCatId === cat.id;
-                  return (
-                    <article className={`cat-manage-card cat-manage-card--${cat.tone}`} key={cat.id}>
-                      <div className="cat-manage-top">
-                        <Icon size={26} />
-                        <span className="cat-manage-count">{cat.count}<small>menu</small></span>
-                      </div>
-                      {editing ? (
-                        <input
-                          type="text"
-                          className="cat-manage-input"
-                          value={editingCatName}
-                          maxLength={30}
-                          onChange={(e) => setEditingCatName(e.target.value)}
-                          aria-label="Nama kategori baru"
-                        />
-                      ) : (
-                        <h4>{cat.name}</h4>
-                      )}
-                      <div className="cat-manage-actions">
-                        {editing ? (
-                          <>
-                            <button type="button" className="btn-primary btn-sm" onClick={() => submitRenameCat(cat)}>Simpan</button>
-                            <button type="button" className="btn-outline btn-sm" onClick={() => setEditingCatId('')}>Batal</button>
-                          </>
-                        ) : (
-                          <>
-                            <button type="button" className="btn-outline btn-sm" onClick={() => startRenameCat(cat)}>Ubah</button>
-                            <button type="button" className="btn-outline btn-sm btn-danger" onClick={() => onDeleteCat(cat)}>Hapus</button>
-                          </>
-                        )}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-            {catError && <p className="form-error" role="alert">{catError}</p>}
           </section>
         )}
 

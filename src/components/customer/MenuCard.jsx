@@ -60,7 +60,7 @@ export default function MenuCard({ item }) {
           aria-label={empty ? `${item.name} habis` : `Tambahkan ${item.name} ke keranjang`}
           onClick={onAdd}
         >
-          <IconPlus size={17} /> {empty ? 'Habis' : 'Tambah'}
+          {empty ? 'Habis' : (<><IconPlus size={17} /> Tambah</>)}
         </button>
       </div>
     </article>

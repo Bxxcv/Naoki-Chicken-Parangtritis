@@ -560,8 +560,8 @@ img { max-width: 100%; display: block; }
     box-shadow: 0 8px 18px rgba(255, 201, 33, .45);
     transition: background .15s ease, transform .12s ease, box-shadow .15s ease;
   }
-  .menu-add:hover { background: var(--c-gold-dark); box-shadow: 0 10px 22px rgba(229, 173, 0, .5); }
-  .menu-add:active { transform: scale(.98); }
+  .menu-add:not(:disabled):hover { background: var(--c-gold-dark); box-shadow: 0 10px 22px rgba(229, 173, 0, .5); }
+  .menu-add:not(:disabled):active { transform: scale(.98); }
 
   @media (max-width: 575.98px) {
     .menu-page-grid { grid-template-columns: 1fr; }

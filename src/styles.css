@@ -267,6 +267,9 @@ img { max-width: 100%; display: block; }
   overflow-x: auto; scrollbar-width: none;
   padding: 6px 2px 14px; margin-top: 26px;
 }
+/* Tengah saat muat, tetap bisa scroll saat penuh */
+.cat-strip-item:first-child { margin-left: auto; }
+.cat-strip-item:last-child { margin-right: auto; }
 .cat-strip::-webkit-scrollbar { display: none; }
 .cat-strip-item {
   flex: 0 0 auto; width: 78px;

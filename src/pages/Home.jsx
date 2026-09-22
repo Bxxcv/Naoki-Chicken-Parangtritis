@@ -188,7 +188,8 @@ export default function Home() {
     }));
   }, [products]);
 
-  const scrollToMenu = () => {
+  const pickCategory = (title) => {
+    setCatFilter(title);
     document.getElementById('menu-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -248,7 +249,7 @@ export default function Home() {
                   type="button"
                   className="cat-strip-item"
                   key={title}
-                  onClick={scrollToMenu}
+                  onClick={() => pickCategory(title)}
                   aria-label={`Lihat menu ${title}`}
                 >
                   <span className={`cat-strip-icon cat-strip-icon--${tone}`}>

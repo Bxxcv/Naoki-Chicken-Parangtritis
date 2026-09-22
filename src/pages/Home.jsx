@@ -186,7 +186,8 @@ export default function Home() {
       no: String(i + 1).padStart(2, '0'),
       icon: categoryIcon(title, i),
       title,
-      desc: `${groups[title]} pilihan menu.`,
+      count: groups[title],
+      desc: groups[title] === 1 ? '1 pilihan menu.' : `${groups[title]} pilihan menu.`,
       tone: CATEGORY_TONES[i % CATEGORY_TONES.length],
     }));
   }, [products]);
@@ -247,23 +248,29 @@ export default function Home() {
 
           {categoryCards.length > 0 && (
             <div className="category-grid">
-              {categoryCards.map(({ no, icon: Icon, title, desc, tone }) => (
-                <button
-                  type="button"
-                  className={`category-card category-card--${tone}`}
-                  key={title}
-                  onClick={() => pickCategory(title)}
-                  aria-label={`Lihat menu kategori ${title}`}
-                >
-                  <span className="category-icon"><Icon size={30} /></span>
-                  <span className="category-no">{no}</span>
-                  <div className="category-row">
+              {categoryCards.map(({ icon: Icon, title, count, desc, tone }) => {
+                const active = catFilter === title;
+                return (
+                  <button
+                    type="button"
+                    className={`category-card category-card--${tone}${active ? ' is-active' : ''}`}
+                    key={title}
+                    aria-pressed={active}
+                    onClick={() => pickCategory(active ? 'Semua' : title)}
+                    aria-label={`${active ? 'Tampilkan semua menu' : `Lihat menu kategori ${title}`}`}
+                  >
+                    <div className="category-top">
+                      <span className="category-icon"><Icon size={28} /></span>
+                      <span className="category-count">{count} menu</span>
+                    </div>
                     <h3>{title}</h3>
-                    <IconArrowRight size={19} />
-                  </div>
-                  <p>{desc}</p>
-                </button>
-              ))}
+                    <p>{desc}</p>
+                    <span className="category-cta">
+                      {active ? 'Tampilkan semua' : 'Lihat menu'} <IconArrowRight size={16} />
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
 

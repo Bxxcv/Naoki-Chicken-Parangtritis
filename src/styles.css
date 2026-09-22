@@ -379,7 +379,7 @@ img { max-width: 100%; display: block; }
   padding: 16px;
   animation: modal-in .25s cubic-bezier(.22,1,.36,1);
 }
-.modal {
+.admin-modal {
   background: #fff; border-radius: 16px;
   width: min(600px, 100%);
   max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px);
@@ -510,7 +510,7 @@ img { max-width: 100%; display: block; }
   z-index: 95; width: min(440px, calc(100% - 32px));
   pointer-events: none;
 }
-.toast {
+.naoki-toast {
   display: flex; align-items: center; gap: 10px;
   background: var(--c-dark); color: #fff;
   border-radius: 12px; padding: 13px 16px;
@@ -518,7 +518,7 @@ img { max-width: 100%; display: block; }
   box-shadow: 0 16px 34px rgba(31, 15, 14, .28);
   animation: toast-in .3s cubic-bezier(.22,1,.36,1);
 }
-.toast svg { color: var(--c-gold); flex: 0 0 auto; }
+.naoki-toast svg { color: var(--c-gold); flex: 0 0 auto; }
 @keyframes toast-in {
   from { opacity: 0; transform: translateY(-10px) scale(.98); }
   to { opacity: 1; transform: none; }
@@ -1072,7 +1072,7 @@ img { max-width: 100%; display: block; }
   .hero-video { animation: none; }
   .admin-sidebar { transition: none; }
   .cart-drawer, .cart-scrim, .site-nav-links { transition: none; }
-  .toast { animation: none; }
+  .naoki-toast { animation: none; }
   .modal-scrim { animation: none; }
   .nav-cart-badge.is-pop { animation: none; }
   * { scroll-behavior: auto !important; }

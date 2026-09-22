@@ -171,7 +171,7 @@ export default function Products() {
             className="modal-scrim"
             onClick={(e) => { if (e.target === e.currentTarget) setFormOpen(false); }}
           >
-          <section className="modal" role="dialog" aria-modal="true" aria-label={form.id ? 'Ubah produk' : 'Produk baru'}>
+          <section className="admin-modal" role="dialog" aria-modal="true" aria-label={form.id ? 'Ubah produk' : 'Produk baru'}>
             <div className="panel-head">
               <div>
                 <h3>{form.id ? 'Ubah produk' : 'Produk baru'}</h3>

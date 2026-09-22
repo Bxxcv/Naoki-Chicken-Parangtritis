@@ -16,7 +16,7 @@ export default function Toast() {
 
   return (
     <div className="toast-wrap" role="status" aria-live="polite">
-      <div className="toast" key={toast.id}>
+      <div className="naoki-toast" key={toast.id}>
         <IconBag size={18} />
         <span>{toast.message}</span>
       </div>

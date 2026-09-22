@@ -178,26 +178,17 @@ export default function Home() {
     ? products
     : products.filter((p) => p.category === catFilter);
 
-  // Kartu kategori SELALU dari data asli (tidak statis) agar klik
-  // tidak pernah menghasilkan daftar kosong.
+  // Strip kategori: hiasan + scroll ke grid (filter tetap lewat tab).
   const categoryCards = useMemo(() => {
-    const groups = {};
-    products.forEach((p) => {
-      const key = p.category || 'Lainnya';
-      groups[key] = (groups[key] || 0) + 1;
-    });
-    return Object.keys(groups).sort().map((title, i) => ({
-      no: String(i + 1).padStart(2, '0'),
+    const names = [...new Set(products.map((p) => p.category || 'Lainnya'))].sort();
+    return names.map((title, i) => ({
       icon: categoryIcon(title, i),
       title,
-      count: groups[title],
-      desc: groups[title] === 1 ? '1 pilihan menu.' : `${groups[title]} pilihan menu.`,
       tone: CATEGORY_TONES[i % CATEGORY_TONES.length],
     }));
   }, [products]);
 
-  const pickCategory = (title) => {
-    setCatFilter(title);
+  const scrollToMenu = () => {
     document.getElementById('menu-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -251,30 +242,21 @@ export default function Home() {
           </div>
 
           {categoryCards.length > 0 && (
-            <div className="category-grid">
-              {categoryCards.map(({ icon: Icon, title, count, desc, tone }) => {
-                const active = catFilter === title;
-                return (
-                  <button
-                    type="button"
-                    className={`category-card category-card--${tone}${active ? ' is-active' : ''}`}
-                    key={title}
-                    aria-pressed={active}
-                    onClick={() => pickCategory(active ? 'Semua' : title)}
-                    aria-label={`${active ? 'Tampilkan semua menu' : `Lihat menu kategori ${title}`}`}
-                  >
-                    <div className="category-top">
-                      <span className="category-icon"><Icon size={28} /></span>
-                      <span className="category-count">{count} menu</span>
-                    </div>
-                    <h3>{title}</h3>
-                    <p>{desc}</p>
-                    <span className="category-cta">
-                      {active ? 'Tampilkan semua' : 'Lihat menu'} <IconArrowRight size={16} />
-                    </span>
-                  </button>
-                );
-              })}
+            <div className="cat-strip" aria-label="Kategori menu">
+              {categoryCards.map(({ icon: Icon, title, tone }) => (
+                <button
+                  type="button"
+                  className="cat-strip-item"
+                  key={title}
+                  onClick={scrollToMenu}
+                  aria-label={`Lihat menu ${title}`}
+                >
+                  <span className={`cat-strip-icon cat-strip-icon--${tone}`}>
+                    <Icon size={28} />
+                  </span>
+                  <span>{title}</span>
+                </button>
+              ))}
             </div>
           )}
 

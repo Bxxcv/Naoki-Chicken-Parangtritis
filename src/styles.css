@@ -261,44 +261,30 @@ img { max-width: 100%; display: block; }
 .section-link:hover { color: var(--c-red-dark); }
 .section-note { margin-top: 22px; color: var(--c-muted); font-size: .86rem; }
 
-/* -- Kartu kategori -- */
-.category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.category-card {
-  position: relative; border-radius: 20px; padding: 24px 22px 22px;
-  min-height: 210px; display: flex; flex-direction: column;
-  transition: transform .22s cubic-bezier(.22,1,.36,1), box-shadow .22s ease;
-  border: 0; width: 100%; text-align: left; cursor: pointer;
-  font-family: var(--font-body);
-  overflow: hidden;
+/* -- Strip kategori (hemat tempat) -- */
+.cat-strip {
+  display: flex; gap: 16px;
+  overflow-x: auto; scrollbar-width: none;
+  padding: 6px 2px 14px; margin-top: 26px;
 }
-.category-card--cream { background: var(--c-cream); color: var(--c-dark); }
-.category-card--gold { background: var(--c-gold); color: var(--c-dark); }
-.category-card--plain { background: var(--c-plain); color: var(--c-dark); }
-@media (hover: hover) {
-  .category-card:hover { transform: translateY(-5px); box-shadow: 0 20px 38px rgba(31, 15, 14, .14); }
+.cat-strip::-webkit-scrollbar { display: none; }
+.cat-strip-item {
+  flex: 0 0 auto; width: 78px;
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  background: none; border: 0; cursor: pointer; padding: 0;
+  font-family: var(--font-body); font-size: .8rem; font-weight: 600;
+  color: var(--c-dark); text-align: center; line-height: 1.3;
 }
-.category-card.is-active { outline: 2.5px solid var(--c-red); outline-offset: -2.5px; }
-.category-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.category-icon {
-  width: 58px; height: 58px; border-radius: 50%;
-  background: #fff; color: var(--c-red);
-  display: grid; place-items: center; flex: 0 0 auto;
-  box-shadow: 0 10px 20px rgba(31, 15, 14, .14);
+.cat-strip-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: grid; place-items: center; color: var(--c-red);
+  box-shadow: 0 8px 18px rgba(31, 15, 14, .1);
+  transition: transform .15s ease;
 }
-.category-count {
-  font-size: .74rem; font-weight: 700; white-space: nowrap;
-  background: rgba(255, 255, 255, .75); color: var(--c-dark);
-  padding: 5px 13px; border-radius: 999px;
-}
-.category-card h3 { font-size: 1.5rem; font-weight: 600; margin: 16px 0 4px; }
-.category-card p { margin: 0; font-size: .88rem; color: rgba(42, 30, 22, .72); }
-.category-cta {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: auto; padding-top: 16px;
-  font-weight: 700; font-size: .88rem; color: var(--c-red);
-}
-
-@media (max-width: 991.98px) { .category-grid { grid-template-columns: 1fr; } }
+.cat-strip-item:hover .cat-strip-icon, .cat-strip-item:active .cat-strip-icon { transform: scale(1.07); }
+.cat-strip-icon--cream { background: var(--c-cream); }
+.cat-strip-icon--gold { background: var(--c-gold); }
+.cat-strip-icon--plain { background: var(--c-plain); }
 
 /* -- Tab kategori menu -- */
 .cat-tabs {
@@ -686,9 +672,6 @@ img { max-width: 100%; display: block; }
   .hero-content { padding-block: 48px 56px; }
   .hero h1 { font-size: clamp(2.2rem, 1.4rem + 4vw, 3.5rem); }
   .section { padding-block: 48px; }
-  .category-card { padding: 18px 16px; min-height: 0; }
-  .category-card h3 { font-size: 1.25rem; margin-top: 12px; }
-  .category-icon { width: 48px; height: 48px; }
   .step-grid { gap: 18px; }
   .faq-grid { gap: 18px; }
 }

@@ -6,6 +6,12 @@ import { IconPlus, IconSearch, IconBox } from '../../components/admin/icons.jsx'
 
 const EMPTY_FORM = { id: '', name: '', category: 'Ayam', price: '', stock: '', desc: '', image: '' };
 
+// Tampil "15.000", simpan "15000" (digit saja, tanpa titik).
+function formatRibuan(value) {
+  if (value === '' || value == null) return '';
+  return new Intl.NumberFormat('id-ID').format(Number(value) || 0);
+}
+
 function formatPrice(price) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(price) || 0);
 }
@@ -49,6 +55,11 @@ export default function Products() {
   };
 
   const set = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }));
+
+  const onPrice = (e) => {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
+    setForm((prev) => ({ ...prev, price: digits }));
+  };
 
   const onPhoto = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -162,7 +173,16 @@ export default function Products() {
                 </label>
                 <label className="form-field">
                   <span>Harga (Rp) *</span>
-                  <input type="number" min="0" step="500" value={form.price} onChange={set('price')} placeholder="15000" />
+                  <div className="input-rp">
+                    <span aria-hidden="true">Rp</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={formatRibuan(form.price)}
+                      onChange={onPrice}
+                      placeholder="15.000"
+                    />
+                  </div>
                 </label>
                 <label className="form-field">
                   <span>Stok (porsi)</span>

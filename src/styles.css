@@ -371,6 +371,35 @@ img { max-width: 100%; display: block; }
   }
   .menu-flag--warn { background: var(--c-gold); color: var(--c-dark); }
 
+/* -- Kartu kelola kategori (admin) -- */
+.cat-manage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+}
+.cat-manage-card {
+  border-radius: 14px; padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.cat-manage-card--cream { background: var(--c-cream); color: var(--c-dark); }
+.cat-manage-card--gold { background: var(--c-gold); color: var(--c-dark); }
+.cat-manage-card--plain { background: var(--c-plain); color: var(--c-dark); }
+.cat-manage-top {
+  display: flex; align-items: center; justify-content: space-between;
+  color: var(--c-red);
+}
+.cat-manage-count { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; color: var(--c-dark); }
+.cat-manage-count small { font-family: var(--font-body); font-size: .72rem; font-weight: 500; color: var(--c-muted); margin-left: 5px; }
+.cat-manage-card h4 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+.cat-manage-input {
+  border: 1px solid var(--a-line-strong); border-radius: 9px;
+  padding: 9px 12px; font-family: var(--font-body); font-size: .9rem;
+  color: var(--a-ink); background: #fff; outline: none; width: 100%;
+}
+.cat-manage-input:focus { border-color: var(--a-accent); }
+.cat-manage-actions { display: flex; gap: 8px; margin-top: auto; }
+.cat-manage-actions .btn-primary, .cat-manage-actions .btn-outline { flex: 1; }
+
 /* -- Popup modal admin -- */
 .modal-scrim {
   position: fixed; inset: 0; z-index: 80;

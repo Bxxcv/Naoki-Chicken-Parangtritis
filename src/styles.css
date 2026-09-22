@@ -948,6 +948,28 @@ img { max-width: 100%; display: block; }
 }
 .field input:focus { border-color: var(--a-accent); }
 
+/* -- Login admin -- */
+.auth-wrap {
+  min-height: 100vh;
+  display: grid; place-items: center;
+  padding: 24px 16px;
+  background: var(--a-bg);
+}
+.auth-card {
+  width: min(400px, 100%);
+  background: #fff; border: 1px solid var(--a-line);
+  border-radius: 16px; padding: 28px 26px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.auth-card h1 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; margin: 6px 0 0; }
+.auth-sub { margin: 0; color: var(--a-muted); font-size: .88rem; }
+.auth-submit { width: 100%; margin-top: 4px; }
+.admin-user {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: .78rem; color: var(--a-muted);
+}
+.admin-logout { margin-top: 8px; width: 100%; }
+
 /* -- Drawer admin (layar kecil) -- */
 .admin-drawer-open, .admin-drawer-close {
   display: none; border: 1px solid var(--a-line-strong); background: #fff;

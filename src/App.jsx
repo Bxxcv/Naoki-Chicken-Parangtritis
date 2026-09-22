@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProductsProvider } from './lib/products.jsx';
+import { AuthProvider, useAuth } from './lib/auth.jsx';
 import Home from './pages/Home.jsx';
 import AdminLayout from './components/admin/AdminLayout.jsx';
 import Dashboard from './pages/admin/Dashboard.jsx';
@@ -9,15 +10,26 @@ import Products from './pages/admin/Products.jsx';
 import Stock from './pages/admin/Stock.jsx';
 import Settings from './pages/admin/Settings.jsx';
 import ModulePlaceholder from './pages/admin/ModulePlaceholder.jsx';
+import Login from './pages/admin/Login.jsx';
+
+// Tanpa sesi login: seluruh /admin/* terkunci di halaman masuk.
+function RequireAuth({ children }) {
+  const { session, loading } = useAuth();
+  if (loading) return <div className="auth-wrap"><p className="auth-sub">Memuat sesi...</p></div>;
+  if (!session) return <Login />;
+  return children;
+}
 
 function App() {
   return (
     <ProductsProvider>
+    <AuthProvider>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route
         path="/admin/*"
         element={
+          <RequireAuth>
           <AdminLayout>
             <Routes>
               <Route index element={<Dashboard />} />
@@ -29,10 +41,12 @@ function App() {
               <Route path="*" element={<ModulePlaceholder />} />
             </Routes>
           </AdminLayout>
+          </RequireAuth>
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </AuthProvider>
     </ProductsProvider>
   );
 }

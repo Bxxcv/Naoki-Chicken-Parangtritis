@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ADMIN_NAV } from './nav.js';
+import { useAuth } from '../../lib/auth.jsx';
 import { IconChevronRight, IconClose, IconMenuBars } from './icons.jsx';
 
 export default function AdminLayout({ children }) {
   const [navOpen, setNavOpen] = useState(false);
+  const { user, signOut } = useAuth();
   const location = useLocation();
 
   // Tutup drawer setiap pindah halaman (perilaku wajib di layar kecil).
@@ -52,8 +54,10 @@ export default function AdminLayout({ children }) {
         </nav>
 
         <div className="admin-sidebar-foot">
-          <strong>Mode prototipe</strong>
-          <span>Belum terhubung data outlet</span>
+          {user && <span className="admin-user">{user.email}</span>}
+          <button type="button" className="btn-outline btn-sm admin-logout" onClick={signOut}>
+            Keluar
+          </button>
         </div>
       </aside>
 

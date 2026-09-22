@@ -249,20 +249,24 @@ export default function Home() {
 
           {categoryCards.length > 0 && (
             <div className="cat-strip" aria-label="Kategori menu">
-              {categoryCards.map(({ icon: Icon, title, tone }) => (
-                <button
-                  type="button"
-                  className="cat-strip-item"
-                  key={title}
-                  onClick={() => pickCategory(title)}
-                  aria-label={`Lihat menu ${title}`}
-                >
-                  <span className={`cat-strip-icon cat-strip-icon--${tone}`}>
-                    <Icon size={28} />
-                  </span>
-                  <span>{title}</span>
-                </button>
-              ))}
+              {categoryCards.map(({ icon: Icon, title, tone }) => {
+                const active = catFilter === title;
+                return (
+                  <button
+                    type="button"
+                    className={`cat-strip-item${active ? ' is-active' : ''}`}
+                    key={title}
+                    aria-pressed={active}
+                    onClick={() => pickCategory(active ? 'Semua' : title)}
+                    aria-label={`${active ? 'Tampilkan semua menu' : `Lihat menu ${title}`}`}
+                  >
+                    <span className={`cat-strip-icon cat-strip-icon--${tone}`}>
+                      <Icon size={26} />
+                    </span>
+                    <span>{title}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
 

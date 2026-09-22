@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 
 const CHANNEL_KEYS = [
@@ -34,7 +35,7 @@ export default function Settings() {
       <PageHeader
         eyebrow="Operasional outlet"
         title="Pengaturan"
-        actions={<button type="button" className="btn-outline">Lihat toko</button>}
+        actions={<Link to="/" className="btn-outline">Lihat toko</Link>}
       />
 
       <div className="admin-body">

@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
 import { ADMIN_NAV } from '../../components/admin/nav.js';
@@ -14,7 +14,7 @@ export default function ModulePlaceholder() {
       <PageHeader
         eyebrow="Operasional outlet"
         title={title}
-        actions={<button type="button" className="btn-outline">Lihat toko</button>}
+        actions={<Link to="/" className="btn-outline">Lihat toko</Link>}
       />
       <div className="admin-body">
         <section className="panel">

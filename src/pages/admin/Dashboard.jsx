@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
 import {
@@ -54,8 +55,8 @@ export default function Dashboard() {
         title="Dasbor"
         actions={
           <>
-            <button type="button" className="btn-primary"><IconPlus size={17} /> Tambah produk</button>
-            <button type="button" className="btn-outline">Lihat toko</button>
+            <Link to="/admin/produk" className="btn-primary"><IconPlus size={17} /> Tambah produk</Link>
+            <Link to="/" className="btn-outline"><IconStore size={17} /> Lihat toko</Link>
           </>
         }
       />
@@ -141,7 +142,7 @@ export default function Dashboard() {
           <section className="panel">
             <div className="panel-head">
               <h3>Produk teratas</h3>
-              <button type="button" className="icon-link"><IconChevronRight size={17} /><span className="visually-hidden">Lihat semua produk</span></button>
+              <Link to="/admin/produk" className="icon-link" aria-label="Lihat semua produk"><IconChevronRight size={17} /></Link>
             </div>
             <EmptyState
               dashed={false}

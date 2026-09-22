@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
 import { IconPlus, IconStock } from '../../components/admin/icons.jsx';
@@ -11,7 +12,7 @@ export default function Stock() {
         eyebrow="Manajemen stok"
         title="Stok"
         actions={
-          <button type="button" className="btn-primary"><IconPlus size={17} /> Atur stok</button>
+          <Link to="/admin/produk" className="btn-primary"><IconPlus size={17} /> Atur stok</Link>
         }
       />
 

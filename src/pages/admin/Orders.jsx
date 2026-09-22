@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
 import { IconPlus, IconSearch, IconFilter, IconOrders } from '../../components/admin/icons.jsx';
@@ -15,8 +16,8 @@ export default function Orders() {
         title="Pesanan"
         actions={
           <>
-            <button type="button" className="btn-primary"><IconPlus size={17} /> Tambah</button>
-            <button type="button" className="btn-outline">Lihat toko</button>
+            <Link to="/admin/pos" className="btn-primary"><IconPlus size={17} /> Tambah</Link>
+            <Link to="/" className="btn-outline">Lihat toko</Link>
           </>
         }
       />

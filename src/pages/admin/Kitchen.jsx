@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 
 // Kolom mengikuti status pesanan di docs/ORDER-PAYMENT-STATES.md.
@@ -14,7 +15,7 @@ export default function Kitchen() {
       <PageHeader
         eyebrow="Tampilan produksi"
         title="Dapur"
-        actions={<button type="button" className="btn-outline">Lihat toko</button>}
+        actions={<Link to="/" className="btn-outline">Lihat toko</Link>}
       />
 
       <div className="admin-body">

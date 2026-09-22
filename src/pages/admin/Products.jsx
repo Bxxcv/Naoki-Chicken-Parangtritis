@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
 import { useProducts, isEmpty, isLow, CATEGORIES } from '../../lib/products.jsx';
@@ -165,15 +166,20 @@ export default function Products() {
           </section>
         )}
 
-        {formOpen && configured && (
+        {formOpen && configured && createPortal(
           <div
             className="modal-scrim"
             onClick={(e) => { if (e.target === e.currentTarget) setFormOpen(false); }}
           >
           <section className="modal" role="dialog" aria-modal="true" aria-label={form.id ? 'Ubah produk' : 'Produk baru'}>
             <div className="panel-head">
-              <h3>{form.id ? 'Ubah produk' : 'Produk baru'}</h3>
-              <span className="panel-meta">Tersimpan ke database + landing</span>
+              <div>
+                <h3>{form.id ? 'Ubah produk' : 'Produk baru'}</h3>
+                <span className="panel-meta">Tersimpan ke database + landing</span>
+              </div>
+              <button type="button" className="cart-close" onClick={() => setFormOpen(false)} aria-label="Tutup formulir">
+                ×
+              </button>
             </div>
             <form onSubmit={onSubmit}>
               <div className="form-grid">
@@ -245,7 +251,8 @@ export default function Products() {
               </div>
             </form>
           </section>
-          </div>
+          </div>,
+          document.body,
         )}
 
         {configured && status !== 'error' && (

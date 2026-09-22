@@ -13,6 +13,7 @@ import { categoryKey } from '../lib/categories.js';
 import { CATEGORY_COMPONENTS } from '../components/customer/icons.jsx';
 import { flyToCart } from '../lib/flyToCart.js';
 import {
+  IconPin,
   IconDineIn,
   IconTakeaway,
   IconPickup,
@@ -103,6 +104,14 @@ function MenuCard({ item }) {
   );
 }
 
+// Klaim terverifikasi dari perilaku nyata aplikasi (skill §5.4):
+// harga & stok dari database outlet, 4 kanal layanan.
+const VALUES = [
+  { icon: IconBag, title: 'Harga resmi outlet', desc: 'Diubah admin, langsung tampil di sini.' },
+  { icon: IconSearch, title: 'Stok apa adanya', desc: 'Habis dan menipis tampil jujur.' },
+  { icon: IconClock, title: '4 cara menikmati', desc: 'Di tempat, bawa pulang, ambil, diantar.' },
+];
+
 const STEPS = [
   { no: '01', icon: IconSearch, title: 'Pilih yang Anda suka', desc: 'Jelajahi menu dan cek ketersediaannya.' },
   { no: '02', icon: IconBag, title: 'Sesuaikan pesanan', desc: 'Tentukan jumlah, catatan, dan cara menikmati.' },
@@ -124,10 +133,14 @@ const FAQ = [
   },
 ];
 
-const FOOTER_LINKS = [
-  { title: 'Jelajahi', links: ['Beranda', 'Menu', 'Keranjang'] },
-  { title: 'Pesanan Anda', links: ['Lacak pesanan', 'Riwayat pesanan', 'Pembayaran', 'Profil'] },
+const FOOTER_EXPLORE = [
+  { label: 'Beranda', href: '#beranda' },
+  { label: 'Menu', href: '#menu' },
+  { label: 'Cara pesan', href: '#riwayat' },
+  { label: 'FAQ', href: '#profil' },
 ];
+
+const MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Naoki+Chicken+Parangtritis';
 
 // Akun resmi outlet belum dikunci — tombol memberi info jujur via toast.
 const SOCIALS = [
@@ -135,6 +148,15 @@ const SOCIALS = [
   { label: 'TikTok', Icon: IconTiktok },
   { label: 'WhatsApp', Icon: IconWhatsapp },
 ];
+
+function FooterCartButton() {
+  const { count, setOpen } = useCart();
+  return (
+    <button type="button" className="footer-link-btn" onClick={() => setOpen(true)}>
+      Buka keranjang{count > 0 ? ` (${count})` : ''}
+    </button>
+  );
+}
 
 function SocialButtons() {
   const { notify } = useCart();
@@ -198,7 +220,10 @@ export default function Home() {
           <HeroVideo />
         </div>
         <div className="shell-container hero-content">
-          
+          <span className="hero-eyebrow">
+            <IconPin size={16} />
+            Dari Parangtritis, untuk Anda
+          </span>
           <h1>
             Naoki Chicken
             <span>Pasti Senang, Pasti kenyang</span>
@@ -211,7 +236,7 @@ export default function Home() {
             <a href="#menu" className="btn-gold">
               Jelajahi menu <IconArrowRight size={17} />
             </a>
-            <a href="#riwayat" className="btn-dark">Lacak pesanan</a>
+            <a href="#riwayat" className="btn-dark">Cara pesan</a>
           </div>
         </div>
       </section>
@@ -306,6 +331,20 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="value-strip" aria-label="Kenapa pesan di sini">
+        <div className="shell-container value-strip-inner">
+          {VALUES.map(({ icon: Icon, title, desc }) => (
+            <div className="value-item" key={title}>
+              <span className="value-icon"><Icon size={22} /></span>
+              <div>
+                <strong>{title}</strong>
+                <p>{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="red-band" ref={bandRef}>
         <div className={`shell-container red-band-inner reveal ${bandVisible ? 'is-visible' : ''}`}>
           <div className="red-band-copy">
@@ -360,16 +399,23 @@ export default function Home() {
               <SocialButtons />
             </div>
 
-            {FOOTER_LINKS.map((column) => (
-              <div className="footer-col" key={column.title}>
-                <h4>{column.title}</h4>
-                <ul>
-                  {column.links.map((link) => (
-                    <li key={link}><a href="#beranda">{link}</a></li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            <div className="footer-col">
+              <h4>Jelajahi</h4>
+              <ul>
+                {FOOTER_EXPLORE.map((link) => (
+                  <li key={link.label}><a href={link.href}>{link.label}</a></li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="footer-col">
+              <h4>Pesanan Anda</h4>
+              <ul>
+                <li><FooterCartButton /></li>
+                <li><a href="#riwayat">Cara pesan</a></li>
+                <li><a href="#profil">FAQ</a></li>
+              </ul>
+            </div>
 
             <div className="footer-col">
               <h4>Kunjungi &amp; hubungi</h4>
@@ -377,6 +423,14 @@ export default function Home() {
                 Naoki Chicken Parangtritis<br />
                 Alamat, jam buka, dan kontak resmi menunggu konfirmasi outlet.
               </p>
+              <a
+                className="footer-maps"
+                href={MAPS_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Cari di Google Maps <IconArrowRight size={14} />
+              </a>
             </div>
           </div>
 

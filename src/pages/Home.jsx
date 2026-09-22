@@ -297,7 +297,18 @@ export default function Home() {
           )}
 
           {status === 'loading' ? (
-            <p className="section-note">Memuat menu terbaru dari outlet...</p>
+            <div className="menu-carousel" aria-label="Memuat menu" aria-busy="true">
+              {[0, 1, 2].map((i) => (
+                <div className="menu-card is-loading" key={i} aria-hidden="true">
+                  <div className="menu-image"><span className="shimmer" /></div>
+                  <div className="menu-body">
+                    <div className="shimmer-line" style={{ width: '70%' }} />
+                    <div className="shimmer-line" style={{ width: '45%' }} />
+                    <div className="shimmer-line" style={{ width: '100%', height: 44 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : products.length === 0 ? (
             <p className="section-note">Menu sedang disiapkan outlet dan akan tampil di sini setelah dikunci.</p>
           ) : (

@@ -484,7 +484,20 @@ img { max-width: 100%; display: block; }
     .menu-carousel .menu-card { flex-basis: 78%; }
   }
 
-/* -- Keranjang -- */
+/* -- Skeleton loading menu -- */
+.menu-card.is-loading { pointer-events: none; }
+.shimmer, .shimmer-line {
+  display: block;
+  background: linear-gradient(100deg, var(--c-plain) 40%, #fff 50%, var(--c-plain) 60%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+.menu-image .shimmer { position: absolute; inset: 0; }
+.shimmer-line { height: 14px; border-radius: 7px; margin-bottom: 10px; }
+@keyframes shimmer {
+  from { background-position: 180% 0; }
+  to { background-position: -20% 0; }
+}
 .cart-scrim {
   position: fixed; inset: 0; z-index: 70;
   background: rgba(20, 12, 11, .45);
@@ -1137,6 +1150,7 @@ img { max-width: 100%; display: block; }
   .admin-sidebar { transition: none; }
   .cart-drawer, .cart-scrim, .site-nav-links { transition: none; }
   .naoki-toast { animation: none; }
+  .shimmer, .shimmer-line { animation: none; }
   .modal-scrim { animation: none; }
   .nav-cart-badge.is-pop { animation: none; }
   * { scroll-behavior: auto !important; }

@@ -15,3 +15,5 @@ Do not claim a migration is executed just because the file exists.
 - `migrations/0001_mvp_schema_draft.sql` — skema awal (DRAFT).
 - `migrations/0002_products_backend.sql` — outlet + kategori + products
   + bucket `product-images` + RLS (DRAFT). Jalankan manual di SQL Editor.
+- `migrations/0003_categories_write.sql` — izin tulis kategori untuk
+  authenticated (DRAFT). Jalankan menyusul 0002.

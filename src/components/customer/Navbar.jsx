@@ -2,9 +2,11 @@ import { useState } from 'react';
 import BrandLogo from './BrandLogo.jsx';
 import { IconMenuBars, IconClose } from './icons.jsx';
 
+import { Link } from 'react-router-dom';
+
 const NAV = [
   { label: 'Beranda', href: '#beranda' },
-  { label: 'Menu', href: '#menu' },
+  { label: 'Menu', to: '/menu' },
   { label: 'Riwayat', href: '#riwayat' },
   { label: 'Profil', href: '#profil' },
 ];
@@ -30,9 +32,13 @@ export default function Navbar() {
 
         <nav id="nav-menu" className={`site-nav-links${open ? ' is-open' : ''}`} aria-label="Navigasi utama">
           {NAV.map((item, index) => (
-            <a key={item.label} href={item.href} className={index === 0 ? 'is-active' : undefined} onClick={() => setOpen(false)}>
-              {item.label}
-            </a>
+            item.to ? (
+              <Link key={item.label} to={item.to} onClick={() => setOpen(false)}>{item.label}</Link>
+            ) : (
+              <a key={item.label} href={item.href} className={index === 0 ? 'is-active' : undefined} onClick={() => setOpen(false)}>
+                {item.label}
+              </a>
+            )
           ))}
         </nav>
       </div>

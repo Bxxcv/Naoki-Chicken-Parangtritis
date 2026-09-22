@@ -85,6 +85,15 @@ export function IconBag(props) {
   );
 }
 
+export function IconBox(props) {
+  return (
+    <IconBase {...props}>
+      <path d="m12 3 8 4.2v9.6L12 21l-8-4.2V7.2Z" />
+      <path d="m4 7.2 8 4.3 8-4.3M12 11.5V21" />
+    </IconBase>
+  );
+}
+
 export function IconCup(props) {
   return (
     <IconBase {...props}>

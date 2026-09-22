@@ -2,7 +2,9 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProductsProvider } from './lib/products.jsx';
 import { AuthProvider, useAuth } from './lib/auth.jsx';
 import { SettingsProvider } from './lib/settings.jsx';
+import { CartProvider } from './lib/cart.jsx';
 import Home from './pages/Home.jsx';
+import Menu from './pages/Menu.jsx';
 import AdminLayout from './components/admin/AdminLayout.jsx';
 import Dashboard from './pages/admin/Dashboard.jsx';
 import Orders from './pages/admin/Orders.jsx';
@@ -26,8 +28,10 @@ function App() {
     <ProductsProvider>
     <AuthProvider>
     <SettingsProvider>
+    <CartProvider>
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/menu" element={<Menu />} />
       <Route
         path="/admin/*"
         element={
@@ -48,6 +52,7 @@ function App() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </CartProvider>
     </SettingsProvider>
     </AuthProvider>
     </ProductsProvider>

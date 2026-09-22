@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/customer/Navbar.jsx';
 import BrandLogo from '../components/customer/BrandLogo.jsx';
 import HeroVideo from '../components/customer/HeroVideo.jsx';
@@ -7,110 +8,34 @@ import CartFab from '../components/customer/CartFab.jsx';
 import Toast from '../components/customer/Toast.jsx';
 import Faq from '../components/customer/Faq.jsx';
 import useReveal from '../lib/useReveal.js';
-import { CartProvider, useCart, formatIDR } from '../lib/cart.jsx';
-import { useProducts, isEmpty, isLow } from '../lib/products.jsx';
+import { useCart } from '../lib/cart.jsx';
+import { useProducts } from '../lib/products.jsx';
 import { useSettings, openInfo } from '../lib/settings.jsx';
 import { categoryKey } from '../lib/categories.js';
 import { CATEGORY_COMPONENTS } from '../components/customer/icons.jsx';
-import { flyToCart } from '../lib/flyToCart.js';
 import {
   IconPin,
-  IconDineIn,
-  IconTakeaway,
-  IconPickup,
-  IconDelivery,
-  IconBag,
   IconSearch,
+  IconBag,
   IconClock,
   IconArrowRight,
-  IconPlus,
   IconInstagram,
   IconTiktok,
   IconWhatsapp,
 } from '../components/customer/icons.jsx';
 
-const CHANNELS = [
-  { icon: IconDineIn, label: 'Makan di tempat' },
-  { icon: IconTakeaway, label: 'Bawa pulang' },
-  { icon: IconPickup, label: 'Ambil sendiri' },
-  { icon: IconDelivery, label: 'Diantar' },
-];
-
 const CATEGORY_TONES = ['cream', 'gold', 'plain'];
 
-function categoryIcon(name, index) {
+function categoryIcon(name) {
   return CATEGORY_COMPONENTS[categoryKey(name)] || IconBag;
 }
 
-const MENU_FALLBACK = IconBag;
-
-function MenuCard({ item }) {
-  const { add, notify } = useCart();
-  const FallbackIcon = CATEGORY_COMPONENTS[categoryKey(item.category)] || MENU_FALLBACK;
-  const empty = isEmpty(item);
-  const low = isLow(item);
-
-  const onAdd = (e) => {
-    if (empty) return;
-    const flightMs = flyToCart(e.currentTarget, item.category);
-    add(item);
-    const message = `${item.name} dimasukkan ke keranjang.`;
-    // Toast menyusul saat lencana hampir mendarat.
-    if (flightMs > 0) {
-      setTimeout(() => notify(message), flightMs - 450);
-    } else {
-      notify(message);
-    }
-  };
-
-  return (
-    <article className={`menu-card${empty ? ' is-empty' : ''}`}>
-      <div className="menu-image">
-        <span className="menu-fallback" aria-hidden="true"><FallbackIcon size={44} /></span>
-        {item.image && (
-          <img
-            src={item.image}
-            alt={item.name}
-            loading="lazy"
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-          />
-        )}
-        <span className="menu-cat">{item.category}</span>
-        {empty
-          ? <span className="menu-flag">Habis</span>
-          : low
-            ? <span className="menu-flag menu-flag--warn">Stok menipis</span>
-            : null}
-      </div>
-      <div className="menu-body">
-        <div className="menu-head">
-          <h3>{item.name}</h3>
-          <span className="menu-price">{formatIDR(item.price)}</span>
-        </div>
-        <p className="menu-desc">{item.desc}</p>
-        {!empty && low && (
-          <span className="menu-stock">Sisa {item.stock} porsi — cepat habis!</span>
-        )}
-        <button
-          type="button"
-          className="menu-add"
-          disabled={empty}
-          aria-label={empty ? `${item.name} habis` : `Tambahkan ${item.name} ke keranjang`}
-          onClick={onAdd}
-        >
-          <IconPlus size={17} /> {empty ? 'Habis' : 'Tambah'}
-        </button>
-      </div>
-    </article>
-  );
-}
-
-// Klaim terverifikasi dari perilaku nyata aplikasi (skill §5.4):
-// harga & stok dari database outlet, 4 kanal layanan.
+// Klaim terverifikasi dari perilaku nyata aplikasi:
+// harga & stok dari database outlet.
 const VALUES = [
-  { icon: IconBag, title: 'Harga resmi outlet', desc: 'Diubah admin, langsung tampil di sini.' },
-  { icon: IconSearch, title: 'Stok apa adanya', desc: 'Habis dan menipis tampil jujur.' },
-  { icon: IconClock, title: '4 cara menikmati', desc: 'Di tempat, bawa pulang, ambil, diantar.' },
+  { icon: IconSearch, title: 'Pilihan yang jelas', desc: 'Kategori membantu Anda menemukan menu dengan lebih cepat.' },
+  { icon: IconBag, title: 'Pesanan terarah', desc: 'Setiap langkah disusun agar mudah diperiksa sebelum dikirim.' },
+  { icon: IconClock, title: 'Proses terpantau', desc: 'Nomor pesanan menjadi akses untuk melihat status terbaru.' },
 ];
 
 const STEPS = [
@@ -134,13 +59,6 @@ const FAQ = [
   },
 ];
 
-const FOOTER_EXPLORE = [
-  { label: 'Beranda', href: '#beranda' },
-  { label: 'Menu', href: '#menu' },
-  { label: 'Cara pesan', href: '#riwayat' },
-  { label: 'FAQ', href: '#profil' },
-];
-
 const MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Naoki+Chicken+Parangtritis';
 
 // Akun resmi outlet belum dikunci — tombol memberi info jujur via toast.
@@ -149,15 +67,6 @@ const SOCIALS = [
   { label: 'TikTok', Icon: IconTiktok },
   { label: 'WhatsApp', Icon: IconWhatsapp },
 ];
-
-function FooterCartButton() {
-  const { count, setOpen } = useCart();
-  return (
-    <button type="button" className="footer-link-btn" onClick={() => setOpen(true)}>
-      Buka keranjang{count > 0 ? ` (${count})` : ''}
-    </button>
-  );
-}
 
 function SocialButtons() {
   const { notify } = useCart();
@@ -178,43 +87,64 @@ function SocialButtons() {
   );
 }
 
+// Pelacakan aktif setelah pemesanan online dibuka — sampai saat itu
+// tombol memberi info jujur, bukan berpura-pura melacak.
+function TrackBox() {
+  const { notify } = useCart();
+  const [number, setNumber] = useState('');
+  return (
+    <form
+      className="track-box"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!number.trim()) {
+          notify('Masukkan nomor pesanan dulu.');
+          return;
+        }
+        notify('Pelacakan aktif setelah pemesanan online dibuka.');
+      }}
+    >
+      <label className="visually-hidden" htmlFor="track-number">Nomor pesanan</label>
+      <input
+        id="track-number"
+        type="text"
+        placeholder="cth: NK-000123"
+        value={number}
+        onChange={(e) => setNumber(e.target.value)}
+        maxLength={20}
+      />
+      <button type="submit" className="btn-dark">
+        Lacak sekarang <IconArrowRight size={16} />
+      </button>
+    </form>
+  );
+}
+
 export default function Home() {
   const [catRef, catVisible] = useReveal(0.12);
   const [bandRef, bandVisible] = useReveal(0.2);
   const [stepRef, stepVisible] = useReveal(0.15);
-  const { products, status } = useProducts();
+  const { products } = useProducts();
   const { settings, status: settingsStatus } = useSettings();
   const info = settingsStatus === 'ready' ? openInfo(settings) : null;
-  const [catFilter, setCatFilter] = useState('Semua');
 
-  const catTabs = useMemo(() => {
-    const counts = {};
-    products.forEach((p) => { counts[p.category] = (counts[p.category] || 0) + 1; });
-    return [{ name: 'Semua', count: products.length },
-      ...Object.keys(counts).sort().map((name) => ({ name, count: counts[name] }))];
-  }, [products]);
-
-  const visibleProducts = catFilter === 'Semua'
-    ? products
-    : products.filter((p) => p.category === catFilter);
-
-  // Strip kategori: hiasan + scroll ke grid (filter tetap lewat tab).
+  // Kartu kategori dari data asli agar selalu cocok dengan isi menu.
   const categoryCards = useMemo(() => {
-    const names = [...new Set(products.map((p) => p.category || 'Lainnya'))].sort();
-    return names.map((title, i) => ({
-      icon: categoryIcon(title, i),
+    const groups = {};
+    products.forEach((p) => {
+      const key = p.category || 'Lainnya';
+      groups[key] = (groups[key] || 0) + 1;
+    });
+    return Object.keys(groups).sort().map((title, i) => ({
+      no: String(i + 1).padStart(2, '0'),
+      icon: categoryIcon(title),
       title,
+      count: groups[title],
       tone: CATEGORY_TONES[i % CATEGORY_TONES.length],
     }));
   }, [products]);
 
-  const pickCategory = (title) => {
-    setCatFilter(title);
-    document.getElementById('menu-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   return (
-    <CartProvider>
     <div className="customer-shell">
       <Navbar />
 
@@ -245,138 +175,57 @@ export default function Home() {
             Pasti kenyang, pasti senang.
           </p>
           <div className="hero-actions">
-            <a href="#menu" className="btn-gold">
+            <Link to="/menu" className="btn-gold">
               Jelajahi menu <IconArrowRight size={17} />
-            </a>
+            </Link>
             <a href="#riwayat" className="btn-dark">Cara pesan</a>
           </div>
         </div>
       </section>
 
-      <div className="channel-strip">
-        <div className="shell-container channel-strip-inner">
-          {CHANNELS.map(({ icon: Icon, label }) => (
-            <span className="channel-item" key={label}>
-              <Icon size={20} />
-              {label}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <section className="section" id="menu" ref={catRef}>
+      <section className="section cat-section" id="kategori" ref={catRef}>
         <div className={`shell-container reveal ${catVisible ? 'is-visible' : ''}`}>
-          <div className="section-head menu-head-block">
-            <div>
-              <span className="menu-eyebrow">Menu andalan kami</span>
-              <h2>Mau makan apa<br />hari ini?</h2>
-              <p className="menu-sub">
-                {products.length === 0
-                  ? 'Daftar menu sedang disiapkan outlet.'
-                  : `${products.length} pilihan siap dinikmati — geser untuk jelajahi.`}
-              </p>
+          <div className="cat-section-inner">
+            <div className="cat-section-intro">
+              <span className="eyebrow eyebrow--red">Menu Naoki</span>
+              <h2>Pilih sesuai suasana makanmu.</h2>
+              <p>Jelajahi kategori, lalu lihat pilihan yang tersedia langsung di halaman menu.</p>
+              <Link to="/menu" className="btn-red">
+                Buka daftar menu <IconArrowRight size={16} />
+              </Link>
+              <p className="section-note">Harga dan ketersediaan mengikuti informasi terbaru dari outlet.</p>
             </div>
-            <button
-              type="button"
-              className="section-link"
-              onClick={() => { setCatFilter('Semua'); document.getElementById('menu-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-            >
-              Lihat semua <IconArrowRight size={16} />
-            </button>
-          </div>
-
-          {categoryCards.length > 0 && (
-            <div className="cat-strip" aria-label="Kategori menu">
-              {categoryCards.map(({ icon: Icon, title, tone }) => {
-                const active = catFilter === title;
-                return (
-                  <button
-                    type="button"
-                    className={`cat-strip-item${active ? ' is-active' : ''}`}
+            {categoryCards.length > 0 && (
+              <div className="cat-cards">
+                {categoryCards.map(({ no, icon: Icon, title, count, tone }) => (
+                  <Link
+                    to={`/menu?cat=${encodeURIComponent(title)}`}
+                    className={`cat-card cat-card--${tone}`}
                     key={title}
-                    aria-pressed={active}
-                    onClick={() => pickCategory(active ? 'Semua' : title)}
-                    aria-label={`${active ? 'Tampilkan semua menu' : `Lihat menu ${title}`}`}
+                    aria-label={`Lihat pilihan kategori ${title}`}
                   >
-                    <span className={`cat-strip-icon cat-strip-icon--${tone}`}>
-                      <Icon size={26} />
-                    </span>
-                    <span>{title}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {status === 'loading' ? (
-            <div className="menu-carousel" aria-label="Memuat menu" aria-busy="true">
-              {[0, 1, 2].map((i) => (
-                <div className="menu-card is-loading" key={i} aria-hidden="true">
-                  <div className="menu-image"><span className="shimmer" /></div>
-                  <div className="menu-body">
-                    <div className="shimmer-line" style={{ width: '70%' }} />
-                    <div className="shimmer-line" style={{ width: '45%' }} />
-                    <div className="shimmer-line" style={{ width: '100%', height: 44 }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : products.length === 0 ? (
-            <p className="section-note">Menu sedang disiapkan outlet dan akan tampil di sini setelah dikunci.</p>
-          ) : (
-            <>
-              <div className="cat-tabs" role="tablist" aria-label="Filter kategori menu">
-                {catTabs.map(({ name, count }) => (
-                  <button
-                    key={name}
-                    type="button"
-                    role="tab"
-                    aria-selected={catFilter === name}
-                    className={`cat-tab${catFilter === name ? ' is-active' : ''}`}
-                    onClick={() => setCatFilter(name)}
-                  >
-                    {name} <span className="cat-count">{count}</span>
-                  </button>
+                    <span className="cat-card-no" aria-hidden="true">{no}</span>
+                    <span className="cat-card-icon"><Icon size={30} /></span>
+                    <h3>{title}</h3>
+                    <p>{count === 1 ? '1 pilihan tersedia.' : `${count} pilihan tersedia.`}</p>
+                    <span className="cat-card-link">Lihat pilihan <IconArrowRight size={15} /></span>
+                  </Link>
                 ))}
               </div>
-              {visibleProducts.length === 0 ? (
-                <p className="section-note">Belum ada menu di kategori ini.</p>
-              ) : (
-                <div className="menu-carousel" id="menu-grid" aria-label="Daftar menu">
-                  {visibleProducts.map((item) => (
-                    <MenuCard key={item.id} item={item} />
-                  ))}
-                </div>
-              )}
-              <p className="section-note">Harga mengikuti data resmi outlet.</p>
-            </>
-          )}
-        </div>
-      </section>
-
-      <section className="value-strip" aria-label="Kenapa pesan di sini">
-        <div className="shell-container value-strip-inner">
-          {VALUES.map(({ icon: Icon, title, desc }) => (
-            <div className="value-item" key={title}>
-              <span className="value-icon"><Icon size={22} /></span>
-              <div>
-                <strong>{title}</strong>
-                <p>{desc}</p>
-              </div>
-            </div>
-          ))}
+            )}
+          </div>
         </div>
       </section>
 
       <section className="red-band" ref={bandRef}>
         <div className={`shell-container red-band-inner reveal ${bandVisible ? 'is-visible' : ''}`}>
           <div className="red-band-copy">
-            <span className="eyebrow eyebrow--gold">Waktunya makan enak</span>
+            <span className="eyebrow eyebrow--gold">Naoki Moment</span>
             <h2>Renyahnya dinikmati.<br />Momennya dibagi.</h2>
             <p>Sendiri atau bersama, selalu ada alasan untuk menikmati Naoki Chicken.</p>
-            <a href="#menu" className="btn-gold">
+            <Link to="/menu" className="btn-gold">
               Lihat pilihan menu <IconArrowRight size={17} />
-            </a>
+            </Link>
           </div>
           <img className="red-band-mascot" src="/brand/naoki-mark.png" alt="" width="364" height="420" loading="lazy" />
         </div>
@@ -402,6 +251,30 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="track-band" id="lacak">
+        <div className="shell-container track-band-inner">
+          <span className="track-badge"><IconSearch size={18} /></span>
+          <div className="track-copy">
+            <span className="eyebrow eyebrow--red">Status pesanan</span>
+            <h2>Sudah memesan?</h2>
+            <p>Masukkan nomor pesanan untuk melihat proses terbaru.</p>
+          </div>
+          <TrackBox />
+        </div>
+      </section>
+
+      <section className="value-section">
+        <div className="shell-container value-grid">
+          {VALUES.map(({ icon: Icon, title, desc }) => (
+            <div className="value-point" key={title}>
+              <Icon size={22} />
+              <h3>{title}</h3>
+              <p>{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="faq-section" id="profil">
         <div className="shell-container faq-grid">
           <div>
@@ -410,6 +283,18 @@ export default function Home() {
             <p className="faq-sub">Informasi penting untuk menikmati Naoki Chicken.</p>
           </div>
           <Faq items={FAQ} />
+        </div>
+      </section>
+
+      <section className="cta-band">
+        <div className="shell-container cta-band-inner">
+          <div>
+            <span className="eyebrow eyebrow--dark">Siap memilih?</span>
+            <h2>Temukan menu untuk momen makan Anda.</h2>
+          </div>
+          <Link to="/menu" className="btn-red">
+            Jelajahi menu <IconArrowRight size={16} />
+          </Link>
         </div>
       </section>
 
@@ -425,18 +310,19 @@ export default function Home() {
             <div className="footer-col">
               <h4>Jelajahi</h4>
               <ul>
-                {FOOTER_EXPLORE.map((link) => (
-                  <li key={link.label}><a href={link.href}>{link.label}</a></li>
-                ))}
+                <li><a href="#beranda">Beranda</a></li>
+                <li><Link to="/menu">Menu</Link></li>
+                <li><FooterCartButton /></li>
               </ul>
             </div>
 
             <div className="footer-col">
               <h4>Pesanan Anda</h4>
               <ul>
-                <li><FooterCartButton /></li>
-                <li><a href="#riwayat">Cara pesan</a></li>
-                <li><a href="#profil">FAQ</a></li>
+                <li><a href="#lacak">Lacak pesanan</a></li>
+                <li><a href="#riwayat">Riwayat pesanan</a></li>
+                <li><FooterPaymentButton /></li>
+                <li><a href="#profil">Profil</a></li>
               </ul>
             </div>
 
@@ -444,9 +330,8 @@ export default function Home() {
               <h4>Kunjungi &amp; hubungi</h4>
               <p className="footer-note">
                 {settings.outlet_name || 'Naoki Chicken Parangtritis'}<br />
-                {settings.address || 'Alamat menunggu konfirmasi outlet.'}
+                {settings.address || 'Alamat, jam buka, dan kontak resmi menunggu konfirmasi outlet.'}
                 {settings.phone ? (<><br />{settings.phone}</>) : null}
-                {!settings.address && !settings.phone ? (<><br />Jam buka dan kontak resmi menyusul.</>) : null}
               </p>
               <a
                 className="footer-maps"
@@ -461,7 +346,7 @@ export default function Home() {
 
           <div className="footer-bottom">
             <span>© {new Date().getFullYear()} Naoki Chicken Parangtritis.</span>
-            <span>Pasti kenyang, pasti senang.</span>
+            <Link to="/admin">Ruang operasional <IconArrowRight size={14} /></Link>
           </div>
         </div>
       </footer>
@@ -469,6 +354,23 @@ export default function Home() {
       <CartFab />
       <Toast />
     </div>
-    </CartProvider>
+  );
+}
+
+function FooterCartButton() {
+  const { count, setOpen } = useCart();
+  return (
+    <button type="button" className="footer-link-btn" onClick={() => setOpen(true)}>
+      Keranjang{count > 0 ? ` (${count})` : ''}
+    </button>
+  );
+}
+
+function FooterPaymentButton() {
+  const { notify } = useCart();
+  return (
+    <button type="button" className="footer-link-btn" onClick={() => notify('Info pembayaran menyusul dari outlet.')}>
+      Pembayaran
+    </button>
   );
 }

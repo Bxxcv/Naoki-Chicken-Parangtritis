@@ -564,8 +564,12 @@ img { max-width: 100%; display: block; }
   .menu-add:active { transform: scale(.98); }
 
   @media (max-width: 575.98px) {
-    .menu-page-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+    .menu-page-grid { grid-template-columns: 1fr; }
     .menu-empty { padding: 44px 18px; }
+    .menu-head { flex-wrap: wrap; row-gap: 4px; }
+    .menu-head h3 { min-width: 0; flex: 1 1 160px; font-size: 1.15rem; }
+    .menu-price { font-size: 1.15rem; }
+    .menu-image { aspect-ratio: 16/10; }
   }
 
 /* -- Skeleton loading menu -- */

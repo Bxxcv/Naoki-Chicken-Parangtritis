@@ -23,9 +23,15 @@ export default function Menu() {
 
   const visible = products.filter((p) => {
     const matchCat = catFilter === 'Semua' || p.category === catFilter;
-    const matchQuery = `${p.name} ${p.desc}`.toLowerCase().includes(query.trim().toLowerCase());
-    return matchCat && matchQuery;
+    const keyword = query.trim().toLowerCase().replace(/\s+/g, ' ');
+    const haystack = `${p.name} ${p.desc} ${p.category}`.toLowerCase().replace(/\s+/g, ' ');
+    return matchCat && haystack.includes(keyword);
   });
+
+  const resetFilter = () => {
+    setQuery('');
+    setCatFilter('Semua');
+  };
 
   return (
     <div className="customer-shell menu-page">
@@ -90,6 +96,11 @@ export default function Menu() {
                 ? 'Nama produk, harga, foto, dan ketersediaan akan ditampilkan setelah data asli dari outlet diterima.'
                 : 'Coba kata kunci atau kategori lain.'}
             </p>
+            {products.length > 0 && (
+              <button type="button" className="btn-outline btn-sm" onClick={resetFilter}>
+                Atur ulang pencarian
+              </button>
+            )}
           </div>
         ) : (
           <div className="menu-page-grid">
@@ -100,7 +111,7 @@ export default function Menu() {
         )}
 
         <p className="section-note">
-          Harga dan ketersediaan mengikuti informasi terbaru dari outlet. <Link to="/">Kembali ke beranda <IconArrowRight size={14} /></Link>
+          <Link to="/">Kembali ke beranda <IconArrowRight size={14} /></Link>
         </p>
       </main>
 

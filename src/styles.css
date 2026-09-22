@@ -129,11 +129,6 @@ img { max-width: 100%; display: block; }
   }
   .site-nav-links a:hover { background: var(--c-plain); }
   .site-nav-links a.is-active { background: var(--c-cream); color: var(--c-red); font-weight: 600; }
-  .nav-track-link {
-    color: var(--c-red); font-weight: 600; font-size: .92rem;
-    text-decoration: none; white-space: nowrap;
-  }
-  .nav-track-link:hover { color: var(--c-red-dark); }
 
   .nav-toggle {
     display: none;
@@ -143,14 +138,6 @@ img { max-width: 100%; display: block; }
     place-items: center;
   }
 
-  .nav-cart {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--c-red);
-    text-decoration: none;
-  }
   .nav-cart-badge {
     position: absolute;
     top: -4px; right: -4px;
@@ -189,8 +176,6 @@ img { max-width: 100%; display: block; }
       pointer-events: auto;
     }
     .site-nav-links a { width: 100%; text-align: center; }
-    .nav-track-link { width: 100%; text-align: center; padding: 12px 0; }
-    .nav-track-link.nav-cart-btn { width: auto; padding: 8px; }
   }
 
 /* -- Tombol -- */
@@ -512,12 +497,28 @@ img { max-width: 100%; display: block; }
   100% { transform: scale(1); }
 }
 
-  .nav-cart-btn {
-    background: none; border: 0; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 6px;
-    font-family: var(--font-body);
-    position: relative;
-  }
+/* -- Tombol keranjang melayang -- */
+.cart-fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  width: 58px; height: 58px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--c-red); color: #fff;
+  border: 0; cursor: pointer;
+  box-shadow: 0 14px 30px rgba(196, 17, 26, .4);
+  transition: transform .15s ease, background .15s ease;
+}
+.cart-fab:hover { background: var(--c-red-dark); }
+.cart-fab:active { transform: scale(.93); }
+.cart-fab .nav-cart-badge {
+  background: var(--c-gold); color: var(--c-dark);
+  border: 2px solid #fff;
+  min-width: 22px; height: 22px;
+  font-size: .7rem;
+  top: -3px; right: -3px;
+}
 
 /* -- Band merah -- */
 .red-band { background: var(--c-red); color: #fff; padding-block: 64px; }

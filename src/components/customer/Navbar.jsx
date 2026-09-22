@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import BrandLogo from './BrandLogo.jsx';
-import { useCart } from '../../lib/cart.jsx';
-import { IconMenuBars, IconClose, IconBag } from './icons.jsx';
+import { IconMenuBars, IconClose } from './icons.jsx';
 
 const NAV = [
   { label: 'Beranda', href: '#beranda' },
@@ -12,7 +11,6 @@ const NAV = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const { count, setOpen: setCartOpen } = useCart();
 
   return (
     <header className="site-nav">
@@ -37,17 +35,6 @@ export default function Navbar() {
             </a>
           ))}
         </nav>
-
-        <button
-          type="button"
-          id="nav-cart-btn"
-          className="nav-track-link nav-cart-btn"
-          aria-label={`Lihat keranjang, ${count} item`}
-          onClick={() => setCartOpen(true)}
-        >
-          <IconBag size={20} />
-          <span className="nav-cart-badge" aria-hidden="true">{count}</span>
-        </button>
       </div>
     </header>
   );

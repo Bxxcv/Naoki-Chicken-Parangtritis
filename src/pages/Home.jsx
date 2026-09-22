@@ -2,6 +2,7 @@ import Navbar from '../components/customer/Navbar.jsx';
 import BrandLogo from '../components/customer/BrandLogo.jsx';
 import HeroVideo from '../components/customer/HeroVideo.jsx';
 import CartDrawer from '../components/customer/CartDrawer.jsx';
+import CartFab from '../components/customer/CartFab.jsx';
 import Toast from '../components/customer/Toast.jsx';
 import Faq from '../components/customer/Faq.jsx';
 import useReveal from '../lib/useReveal.js';
@@ -311,6 +312,7 @@ export default function Home() {
         </div>
       </footer>
       <CartDrawer />
+      <CartFab />
       <Toast />
     </div>
     </CartProvider>

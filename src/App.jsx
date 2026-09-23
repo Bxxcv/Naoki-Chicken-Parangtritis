@@ -11,6 +11,7 @@ import AdminLayout from './components/admin/AdminLayout.jsx';
 import Dashboard from './pages/admin/Dashboard.jsx';
 import Orders from './pages/admin/Orders.jsx';
 import Pos from './pages/admin/Pos.jsx';
+import Pelanggan from './pages/admin/Pelanggan.jsx';
 import Kitchen from './pages/admin/Kitchen.jsx';
 import Products from './pages/admin/Products.jsx';
 import Stock from './pages/admin/Stock.jsx';
@@ -46,6 +47,7 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="pesanan" element={<Orders />} />
               <Route path="pos" element={<Pos />} />
+              <Route path="pelanggan" element={<Pelanggan />} />
               <Route path="dapur" element={<Kitchen />} />
               <Route path="produk" element={<Products />} />
               <Route path="stok" element={<Stock />} />

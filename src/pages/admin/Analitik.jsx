@@ -9,12 +9,48 @@ import { IconAnalytics } from '../../components/admin/icons.jsx';
 const HOURS = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
 const FUNNEL = [
-  ['pending', 'Masuk'],
-  ['confirmed', 'Dikonfirmasi'],
-  ['preparing', 'Diproses'],
-  ['ready', 'Siap'],
-  ['completed', 'Selesai'],
+  ['pending', 'Masuk', '#3b82f6'],
+  ['confirmed', 'Dikonfirmasi', '#f0a500'],
+  ['preparing', 'Diproses', '#f74900'],
+  ['ready', 'Siap', '#16a34a'],
+  ['completed', 'Selesai', '#57534e'],
 ];
+
+// Kurva area SVG halus (tanpa library, tanpa bar).
+function AreaChart({ points }) {
+  const W = 600;
+  const H = 190;
+  const PAD = 8;
+  const max = Math.max(1, ...points.map((p) => p.value));
+  const x = (i) => PAD + (i * (W - PAD * 2)) / Math.max(1, points.length - 1);
+  const y = (v) => H - 26 - (v / max) * (H - 60);
+  const coords = points.map((p, i) => [x(i), y(p.value)]);
+  let d = `M${coords[0][0]},${coords[0][1]}`;
+  for (let i = 1; i < coords.length; i += 1) {
+    const [x0, y0] = coords[i - 1];
+    const [x1, y1] = coords[i];
+    const cx = (x0 + x1) / 2;
+    d += ` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;
+  }
+  const area = `${d} L${x(points.length - 1)},${H} L${x(0)},${H} Z`;
+  const last = coords[coords.length - 1];
+  return (
+    <svg className="area-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Grafik garis order per jam">
+      <defs>
+        <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f74900" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#f74900" stopOpacity="0.03" />
+        </linearGradient>
+      </defs>
+      {[0.25, 0.5, 0.75].map((f) => (
+        <line key={f} x1={PAD} x2={W - PAD} y1={H * f} y2={H * f} className="area-grid" />
+      ))}
+      <path d={area} fill="url(#areaFill)" />
+      <path d={d} fill="none" stroke="#f74900" strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <circle cx={last[0]} cy={last[1]} r="4.5" fill="#f74900" stroke="#fff" strokeWidth="2" />
+    </svg>
+  );
+}
 
 export default function Analitik() {
   const [orders, setOrders] = useState([]);
@@ -59,13 +95,28 @@ export default function Analitik() {
     h,
     count: orders.filter((o) => new Date(o.created_at).getHours() === h).length,
   }));
-  const maxHour = Math.max(1, ...perHour.map((r) => r.count));
 
-  const funnel = FUNNEL.map(([key, label]) => ({
+  const funnel = FUNNEL.map(([key, label, color]) => ({
     label,
+    color,
     count: orders.filter((o) => o.order_status === key).length,
   }));
-  const funnelMax = Math.max(1, ...funnel.map((f) => f.count));
+  const funnelTotal = funnel.reduce((s, f) => s + f.count, 0);
+  let funnelGradient = '#f1efed';
+  if (funnelTotal > 0) {
+    let acc = 0;
+    const stops = [];
+    funnel.forEach(({ color, count }) => {
+      const span = (count / funnelTotal) * 100;
+      if (span <= 0) return;
+      const from = (acc / funnelTotal) * 100;
+      const to = ((acc + count) / funnelTotal) * 100;
+      stops.push(`${color} ${from}% ${Math.max(from, to - 2)}%`);
+      if (to < 100) stops.push(`#ffffff ${Math.max(from, to - 2)}% ${to}%`);
+      acc += count;
+    });
+    funnelGradient = `conic-gradient(from -90deg, ${stops.join(', ')})`;
+  }
 
   return (
     <>
@@ -92,36 +143,29 @@ export default function Analitik() {
           <div className="grid-2">
             <section className="panel">
               <div className="panel-head"><h3>Order per jam</h3><span className="panel-meta">30 hari</span></div>
-              <div className="bar-chart" role="img" aria-label="Sebaran jam order">
-                {perHour.map(({ h, count }) => (
-                  <div className="bar-col" key={h}>
-                    <span className="bar-value">{count > 0 ? count : ''}</span>
-                    <div className="bar-track">
-                      <div className="bar-fill" style={{ height: `${Math.max(count > 0 ? 6 : 0, Math.round((count / maxHour) * 100))}%` }} />
-                    </div>
-                    <span className="bar-label">{String(h).padStart(2, '0')}</span>
-                  </div>
+              <AreaChart points={perHour.map(({ h, count }) => ({ label: h, value: count }))} />
+              <div className="chart-axis">
+                {perHour.filter((_, i) => i % 2 === 0).map(({ h }) => (
+                  <span key={h}>{String(h).padStart(2, '0')}</span>
                 ))}
               </div>
             </section>
 
             <section className="panel">
               <div className="panel-head"><h3>Corong status</h3><span className="panel-meta">30 hari</span></div>
-              <ul className="rank-list">
+              <div className="donut-wrap">
+                <div className="donut-fill" style={{ background: funnelGradient }}>
+                  <div className="donut-center">
+                    <span className="donut-value">{funnelTotal}</span>
+                    <span className="donut-label">Total order</span>
+                  </div>
+                </div>
+              </div>
+              <ul className="legend-list">
                 {funnel.map((f) => (
                   <li key={f.label}>
-                    <div className="rank-body">
-                      <div className="rank-row">
-                        <span>{f.label}</span>
-                        <strong>{f.count}</strong>
-                      </div>
-                      <div className="rank-track">
-                        <div
-                          className="rank-fill"
-                          style={{ width: `${Math.max(f.count > 0 ? 4 : 0, Math.round((f.count / funnelMax) * 100))}%` }}
-                        />
-                      </div>
-                    </div>
+                    <span><i className="dot" style={{ background: f.color }} /> {f.label}</span>
+                    <strong>{f.count}{funnelTotal > 0 ? ` • ${Math.round((f.count / funnelTotal) * 100)}%` : ''}</strong>
                   </li>
                 ))}
               </ul>

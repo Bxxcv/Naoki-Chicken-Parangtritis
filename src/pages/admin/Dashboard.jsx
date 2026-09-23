@@ -99,17 +99,27 @@ export default function Dashboard() {
   const channelCounts = {};
   valid.forEach((o) => { channelCounts[o.order_type] = (channelCounts[o.order_type] || 0) + 1; });
   const channelTotal = valid.length;
+  const channelRows = CHANNELS.map(([key, label, color]) => ({
+    key, label, color,
+    count: channelCounts[key] || 0,
+    pct: channelTotal > 0 ? Math.round(((channelCounts[key] || 0) / channelTotal) * 100) : 0,
+  }));
+  // Donat segmen bercelah putih agar tiap kanal terbaca jelas.
   let gradient = '#f1efed';
   if (channelTotal > 0) {
     let acc = 0;
-    const stops = CHANNELS.map(([key, , color]) => {
-      const count = channelCounts[key] || 0;
+    const GAP = 2;
+    const stops = [];
+    channelRows.forEach(({ color, count }) => {
+      const span = (count / channelTotal) * 100;
+      if (span <= 0) return;
       const from = (acc / channelTotal) * 100;
+      const to = ((acc + count) / channelTotal) * 100;
+      stops.push(`${color} ${from}% ${Math.max(from, to - GAP)}%`);
+      if (to < 100) stops.push(`#ffffff ${Math.max(from, to - GAP)}% ${to}%`);
       acc += count;
-      const to = (acc / channelTotal) * 100;
-      return `${color} ${from}% ${to}%`;
     });
-    gradient = `conic-gradient(${stops.join(', ')})`;
+    gradient = `conic-gradient(from -90deg, ${stops.join(', ')})`;
   }
 
   const statusCounts = {};
@@ -197,10 +207,10 @@ export default function Dashboard() {
               )}
             </div>
             <ul className="legend-list">
-              {CHANNELS.map(([key, label]) => (
+              {channelRows.map(({ key, label, color, count, pct }) => (
                 <li key={key}>
-                  <span>{label}</span>
-                  <strong>{channelCounts[key] || 0}</strong>
+                  <span><i className="dot" style={{ background: color }} /> {label}</span>
+                  <strong>{count} • {pct}%</strong>
                 </li>
               ))}
             </ul>

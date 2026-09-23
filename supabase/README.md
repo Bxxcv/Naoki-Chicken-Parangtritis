@@ -23,3 +23,4 @@ Do not claim a migration is executed just because the file exists.
   (user_id) + baca milik sendiri (DRAFT).
 - `migrations/0008_cash_sessions.sql` — sesi kas + penyesuaian +
   RLS operasional (DRAFT).
+- `migrations/0009_expenses.sql` — pengeluaran outlet + RLS (DRAFT).

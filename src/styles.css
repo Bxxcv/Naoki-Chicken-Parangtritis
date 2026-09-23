@@ -1330,6 +1330,22 @@ img { max-width: 100%; display: block; }
 }
 .bar-label { font-size: .68rem; color: var(--a-muted); white-space: nowrap; }
 
+/* -- Peringkat produk (data nyata) -- */
+.rank-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.rank-list li { display: flex; gap: 12px; align-items: flex-start; }
+.rank-no {
+  width: 28px; height: 28px; border-radius: 50%; flex: 0 0 auto;
+  background: var(--a-bg); color: var(--a-ink);
+  display: grid; place-items: center;
+  font-size: .8rem; font-weight: 700;
+}
+.rank-list li:first-child .rank-no { background: var(--a-accent); color: #fff; }
+.rank-body { flex: 1; min-width: 0; }
+.rank-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: .87rem; }
+.rank-row strong { white-space: nowrap; }
+.rank-track { height: 8px; border-radius: 99px; background: var(--a-bg); margin-top: 6px; overflow: hidden; }
+.rank-fill { height: 100%; border-radius: 99px; background: var(--a-accent); transition: width .4s cubic-bezier(.22,1,.36,1); }
+
 /* -- Drawer admin (layar kecil) -- */
 .admin-drawer-open, .admin-drawer-close {
   display: none; border: 1px solid var(--a-line-strong); background: #fff;

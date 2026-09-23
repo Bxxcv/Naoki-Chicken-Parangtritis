@@ -28,6 +28,7 @@ export default function Laporan() {
   const [range, setRange] = useState(7);
   const [orders, setOrders] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -68,6 +69,24 @@ export default function Laporan() {
     setError('');
     setOrders(orderRows || []);
     setExpenses(expRows || []);
+
+    // Produk terlaris dari item order valid (bukan klaim).
+    const { data: itemRows } = await supabase
+      .from('order_items')
+      .select('product_name_snapshot,quantity,line_total_idr,orders!inner(outlet_id,order_status,created_at)')
+      .eq('orders.outlet_id', outlet.id)
+      .gte('orders.created_at', since)
+      .neq('orders.order_status', 'cancelled')
+      .limit(2000);
+    const agg = {};
+    (itemRows || []).forEach((row) => {
+      const key = row.product_name_snapshot || 'Lainnya';
+      const cur = agg[key] || { name: key, qty: 0, total: 0 };
+      cur.qty += Number(row.quantity) || 0;
+      cur.total += Number(row.line_total_idr) || 0;
+      agg[key] = cur;
+    });
+    setTopProducts(Object.values(agg).sort((a, b) => b.qty - a.qty).slice(0, 10));
   }, [range]);
 
   useEffect(() => {
@@ -175,6 +194,32 @@ export default function Laporan() {
             </section>
 
             <div className="grid-2">
+              <section className="panel">
+                <div className="panel-head"><h3>Produk terlaris</h3><span className="panel-meta">Per porsi terjual</span></div>
+                {topProducts.length === 0 ? (
+                  <p className="panel-desc">Belum ada data.</p>
+                ) : (
+                  <ul className="rank-list">
+                    {topProducts.map((p, i) => (
+                      <li key={p.name}>
+                        <span className="rank-no">{i + 1}</span>
+                        <div className="rank-body">
+                          <div className="rank-row">
+                            <span>{p.name}</span>
+                            <strong>{p.qty} × • {formatIDR(p.total)}</strong>
+                          </div>
+                          <div className="rank-track">
+                            <div
+                              className="rank-fill"
+                              style={{ width: `${Math.max(4, Math.round((p.qty / topProducts[0].qty) * 100))}%` }}
+                            />
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
               <section className="panel">
                 <div className="panel-head"><h3>Pesanan per kanal</h3></div>
                 {Object.keys(report.channels).length === 0 ? (

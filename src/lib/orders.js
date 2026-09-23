@@ -261,6 +261,35 @@ export function subscribeOrders(onChange) {
   }
 }
 
+// Arsipkan order selesai/dibatalkan: hilang dari operasional,
+// tetap di database + laporan. Kembalikan dengan unarchiveOrder.
+export async function archiveFinished(oid) {
+  const { data: rows, error: listError } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('outlet_id', oid)
+    .eq('is_archived', false)
+    .in('order_status', ['completed', 'cancelled'])
+    .limit(1000);
+  if (listError) return { ok: false, error: listError.message };
+  if (!rows || rows.length === 0) return { ok: true, count: 0 };
+  const { error } = await supabase
+    .from('orders')
+    .update({ is_archived: true })
+    .in('id', rows.map((r) => r.id));
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, count: rows.length };
+}
+
+export async function unarchiveOrder(id) {
+  const { error } = await supabase
+    .from('orders')
+    .update({ is_archived: false })
+    .eq('id', id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
 export async function kitchenQueue() {
   if (!supabase) return { ok: false, error: 'Backend belum terhubung.' };
   const { data: outlet } = await supabase.from('outlets').select('id').eq('slug', OUTLET_SLUG).maybeSingle();
@@ -269,6 +298,7 @@ export async function kitchenQueue() {
     .from('orders')
     .select('id,order_number,order_type,order_status,payment_status,created_at,customers(name),order_items(product_name_snapshot,quantity)')
     .eq('outlet_id', outlet.id)
+    .eq('is_archived', false)
     .in('order_status', ['pending', 'confirmed', 'preparing', 'ready'])
     .order('created_at', { ascending: true })
     .limit(60);

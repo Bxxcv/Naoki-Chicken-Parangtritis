@@ -4,7 +4,7 @@ import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
 import FilterMenu, { FilterOption } from '../../components/admin/FilterMenu.jsx';
 import { supabase } from '../../lib/supabase.js';
-import { advanceOrder, cancelOrder, markPaid, NEXT_STATUS, NEXT_LABEL, STATUS_LABEL, ORDER_TYPES } from '../../lib/orders.js';
+import { advanceOrder, cancelOrder, markPaid, archiveFinished, unarchiveOrder, NEXT_STATUS, NEXT_LABEL, STATUS_LABEL, ORDER_TYPES } from '../../lib/orders.js';
 import { formatIDR } from '../../lib/cart.jsx';
 import { IconPlus, IconSearch, IconFilter, IconCalendar, IconPayments, IconOrders } from '../../components/admin/icons.jsx';
 
@@ -64,7 +64,10 @@ function timeOf(iso) {
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
+  const [outletId, setOutletId] = useState('');
   const [active, setActive] = useState('Semua');
+  const [showArchived, setShowArchived] = useState(false);
+  const [archiveMsg, setArchiveMsg] = useState('');
   const [dateRange, setDateRange] = useState('Semua waktu');
   const [payFilter, setPayFilter] = useState('Semua bayar');
   const [search, setSearch] = useState('');
@@ -85,9 +88,10 @@ export default function Orders() {
       setError('Outlet belum siap — jalankan migrasi.');
       return;
     }
+    setOutletId(outlet.id);
     const { data, error: listError } = await supabase
       .from('orders')
-      .select('id,order_number,order_type,order_status,payment_status,total_idr,created_at,customers(name,phone),order_items(product_name_snapshot,quantity),payments(method,status,proof_url)')
+      .select('id,order_number,order_type,order_status,payment_status,is_archived,total_idr,created_at,customers(name,phone),order_items(product_name_snapshot,quantity),payments(method,status,proof_url)')
       .eq('outlet_id', outlet.id)
       .order('created_at', { ascending: false })
       .limit(100);
@@ -124,6 +128,24 @@ export default function Orders() {
     else load();
   };
 
+  const onArchive = async () => {
+    setArchiveMsg('');
+    if (!window.confirm('Anda yakin untuk reset? Order Selesai + Dibatalkan disembunyikan (data tetap tersimpan untuk laporan).')) return;
+    const res = await archiveFinished(outletId);
+    if (!res.ok) {
+      setArchiveMsg(res.error);
+      return;
+    }
+    setArchiveMsg(res.count === 0 ? 'Tidak ada order selesai untuk diarsipkan.' : `${res.count} order diarsipkan. Data tetap tersimpan.`);
+    load();
+  };
+
+  const onUnarchive = async (order) => {
+    const res = await unarchiveOrder(order.id);
+    if (!res.ok) setArchiveMsg(res.error);
+    else load();
+  };
+
   const onPaid = async (order) => {
     if (!window.confirm(`Tandai ${order.order_number} lunas?`)) return;
     setBusy(order.id);
@@ -138,6 +160,8 @@ export default function Orders() {
   const payMethod = (PAY_FILTERS.find((f) => f[0] === payFilter) || [])[1];
   const cutoff = days ? Date.now() - days * 24 * 60 * 60 * 1000 : 0;
   const filtered = orders.filter((o) => {
+    if (!showArchived && o.is_archived) return false;
+    if (showArchived && !o.is_archived) return false;
     const matchStatus = !statuses || statuses.includes(o.order_status);
     const matchDate = !days || new Date(o.created_at).getTime() >= cutoff;
     const method = (o.payments && o.payments[0] && o.payments[0].method) || 'cash';
@@ -159,6 +183,15 @@ export default function Orders() {
         title="Pesanan"
         actions={
           <>
+            <button type="button" className="btn-outline" onClick={onArchive}>Arsipkan selesai</button>
+            <button
+              type="button"
+              className="btn-outline"
+              aria-pressed={showArchived}
+              onClick={() => setShowArchived((v) => !v)}
+            >
+              {showArchived ? 'Sembunyikan arsip' : 'Lihat arsip'}
+            </button>
             <Link to="/admin/pos" className="btn-primary"><IconPlus size={17} /> Tambah</Link>
             <Link to="/" className="btn-outline">Lihat toko</Link>
           </>
@@ -166,6 +199,7 @@ export default function Orders() {
       />
 
       <div className="admin-body">
+        {archiveMsg && <p className="panel-desc" role="status">{archiveMsg}</p>}
         <section className="panel">
           <div className="filter-bar">
             <label className="search-field">
@@ -275,6 +309,17 @@ export default function Orders() {
                   </p>
                   <div className="kitchen-card-head">
                     <span className="cart-note">Total {formatIDR(o.total_idr)}</span>
+                    {o.is_archived ? (
+                      <div className="kitchen-actions" style={{ marginTop: 0 }}>
+                        <button
+                          type="button"
+                          className="btn-outline btn-sm"
+                          onClick={() => onUnarchive(o)}
+                        >
+                          Kembalikan
+                        </button>
+                      </div>
+                    ) : (
                     <div className="kitchen-actions" style={{ marginTop: 0 }}>
                       {NEXT_STATUS[o.order_status] && (
                         <button
@@ -307,6 +352,7 @@ export default function Orders() {
                         </button>
                       )}
                     </div>
+                    )}
                   </div>
                 </article>
                 );

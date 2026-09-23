@@ -182,13 +182,22 @@ export async function createOrder({ customer, type, items, paymentMethod, notes,
       order_id: order.id, method: paymentMethod, status: 'unpaid', amount_idr: subtotal, proof_url: proofUrl || null,
     });
 
-    // Kurangi stok (finite). Race antar-pembeli diterima di MVP.
+    // Kurangi stok (finite) + catat pergerakan penjualan.
     for (const l of lines) {
       const row = byId[l.product_id];
+      const after = Math.max(0, (Number(row.stock_qty) || 0) - l.quantity);
       await supabase
         .from('products')
-        .update({ stock_qty: Math.max(0, (Number(row.stock_qty) || 0) - l.quantity) })
+        .update({ stock_qty: after })
         .eq('id', l.product_id);
+      await supabase.from('stock_movements').insert({
+        outlet_id: oid,
+        product_id: l.product_id,
+        product_name_snapshot: l.product_name_snapshot,
+        quantity_delta: -l.quantity,
+        stock_after: after,
+        reason: `penjualan ${number}`,
+      });
     }
 
     return { ok: true, order_number: order.order_number, total: subtotal };
@@ -328,7 +337,12 @@ export async function cancelOrder(id) {
     .eq('id', id)
     .neq('order_status', 'completed');
   if (error) return { ok: false, error: error.message };
-  // Kembalikan stok.
+  // Kembalikan stok + catat.
+  const { data: orderRow } = await supabase
+    .from('orders')
+    .select('outlet_id,order_number')
+    .eq('id', id)
+    .maybeSingle();
   for (const item of items || []) {
     if (!item.product_id) continue;
     const { data: prod } = await supabase
@@ -337,10 +351,21 @@ export async function cancelOrder(id) {
       .eq('id', item.product_id)
       .maybeSingle();
     if (prod) {
+      const after = (Number(prod.stock_qty) || 0) + Number(item.quantity);
       await supabase
         .from('products')
-        .update({ stock_qty: (Number(prod.stock_qty) || 0) + Number(item.quantity) })
+        .update({ stock_qty: after })
         .eq('id', item.product_id);
+      if (orderRow) {
+        await supabase.from('stock_movements').insert({
+          outlet_id: orderRow.outlet_id,
+          product_id: item.product_id,
+          product_name_snapshot: '',
+          quantity_delta: Number(item.quantity),
+          stock_after: after,
+          reason: `pembatalan ${orderRow.order_number}`,
+        });
+      }
     }
   }
   await supabase.from('order_status_history').insert({ order_id: id, from_status: null, to_status: 'cancelled' });

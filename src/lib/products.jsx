@@ -140,6 +140,7 @@ export function ProductsProvider({ children }) {
   }, []);
 
   // save(product, photoFile?) — photoFile diupload ke Storage saat simpan.
+  // Perubahan stok dicatat ke stock_movements (append-only).
   const save = useCallback(async (product, photoFile) => {
     if (!supabase) return { ok: false, error: 'Backend belum terhubung.' };
     try {
@@ -147,6 +148,17 @@ export function ProductsProvider({ children }) {
       const cid = await categoryId(oid, product.category);
       let imageUrl = product.image || '';
       if (photoFile) imageUrl = await uploadPhoto(photoFile);
+
+      const stock = Math.max(0, Math.round(Number(product.stock) || 0));
+      let oldStock = 0;
+      if (product.id) {
+        const { data: existing } = await supabase
+          .from('products')
+          .select('stock_qty,name')
+          .eq('id', product.id)
+          .maybeSingle();
+        oldStock = Number((existing && existing.stock_qty) || 0);
+      }
 
       const payload = {
         outlet_id: oid,
@@ -156,11 +168,12 @@ export function ProductsProvider({ children }) {
         image_url: imageUrl,
         price_idr: Math.round(Number(product.price)),
         stock_mode: 'finite',
-        stock_qty: Math.max(0, Math.round(Number(product.stock) || 0)),
+        stock_qty: stock,
         low_stock_threshold: Math.max(0, Math.round(Number(product.lowAt) || 20)),
         is_available: true,
       };
 
+      const isNew = !product.id;
       if (product.id) {
         const { error: updateError } = await supabase
           .from('products')
@@ -168,9 +181,35 @@ export function ProductsProvider({ children }) {
           .eq('id', product.id);
         if (updateError) throw new Error(updateError.message);
       } else {
-        const { error: insertError } = await supabase.from('products').insert(payload);
+        const { data: created, error: insertError } = await supabase
+          .from('products')
+          .insert(payload)
+          .select('id')
+          .single();
         if (insertError) throw new Error(insertError.message);
+        product.id = created.id;
       }
+
+      const delta = isNew ? stock : stock - oldStock;
+      if (delta !== 0) {
+        let actor = null;
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          actor = (sessionData && sessionData.session && sessionData.session.user && sessionData.session.user.id) || null;
+        } catch {
+          actor = null;
+        }
+        await supabase.from('stock_movements').insert({
+          outlet_id: oid,
+          product_id: product.id,
+          product_name_snapshot: product.name,
+          quantity_delta: delta,
+          stock_after: stock,
+          reason: isNew ? 'stok awal' : 'penyesuaian manual',
+          actor_id: actor,
+        });
+      }
+
       await reload();
       return { ok: true };
     } catch (err) {

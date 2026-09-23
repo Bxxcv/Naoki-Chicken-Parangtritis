@@ -40,6 +40,22 @@ export const NEXT_LABEL = {
   ready: 'Selesai',
 };
 
+// Ubah error teknis database menjadi bahasa manusia agar pembeli
+// tidak bingung (contoh: RLS, tabel belum ada).
+export function friendlyDbError(message) {
+  const msg = message || 'Gagal memproses. Coba lagi.';
+  if (/row-level security/i.test(msg)) {
+    return 'Gagal menyimpan — sesi Anda tidak berhak. Keluar lalu masuk lagi, atau hubungi outlet.';
+  }
+  if (/does not exist|relation/i.test(msg)) {
+    return 'Database belum siap — minta admin menjalankan migrasi.';
+  }
+  if (/duplicate|unique/i.test(msg)) {
+    return 'Nomor bentrok, ulangi sekali lagi.';
+  }
+  return msg;
+}
+
 function orderNumber() {
   const d = new Date();
   const date = `${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
@@ -157,7 +173,7 @@ export async function createOrder({ customer, type, items, paymentMethod, notes 
 
     return { ok: true, order_number: order.order_number, total: subtotal };
   } catch (err) {
-    return { ok: false, error: err.message || 'Gagal membuat pesanan.' };
+    return { ok: false, error: friendlyDbError(err.message) };
   }
 }
 

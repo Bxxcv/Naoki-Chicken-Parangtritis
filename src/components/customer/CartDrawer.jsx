@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCart, formatIDR } from '../../lib/cart.jsx';
+import { useAuth } from '../../lib/auth.jsx';
 import { useSettings } from '../../lib/settings.jsx';
 import { ORDER_TYPES, validateCustomer, createOrder } from '../../lib/orders.js';
 import { IconClose, IconBag, IconArrowRight } from './icons.jsx';
@@ -11,6 +12,7 @@ const PAYMENTS = [
 
 export default function CartDrawer() {
   const { items, setQty, remove, clear, count, total, open, setOpen } = useCart();
+  const { user, signInWithGoogle } = useAuth();
   const { settings } = useSettings();
   const [step, setStep] = useState('cart');
   const [type, setType] = useState('takeaway');
@@ -81,12 +83,33 @@ export default function CartDrawer() {
           </button>
         </div>
 
-        {step === 'done' && receipt ? (
-          <div className="cart-empty">
+        {step === 'done' && receipt ? (          <div className="cart-empty">
             <p><strong>Pesanan diterima!</strong></p>
             <p className="receipt-number">{receipt.order_number}</p>
             <p>Simpan nomor ini untuk melacak pesanan. Total {formatIDR(receipt.total)} — bayar {payment === 'cash' ? 'tunai di tempat' : 'via QRIS ke kasir'}.</p>
             <button type="button" className="btn-gold" onClick={close}>Selesai</button>
+          </div>
+        ) : step === 'checkout' && !user ? (
+          <div className="cart-empty">
+            <p><strong>Masuk dulu yuk.</strong></p>
+            <p>Checkout butuh akun agar pesanan tercatat dan anti fiktif. Keranjang Anda aman tersimpan.</p>
+            <button
+              type="button"
+              className="btn-gold"
+              disabled={sending}
+              onClick={async () => {
+                setSending(true);
+                const res = await signInWithGoogle();
+                setSending(false);
+                if (!res.ok) setFormError(`${res.error} Minta admin mengaktifkan Google di dashboard Supabase.`);
+              }}
+            >
+              {sending ? 'Membuka Google...' : 'Masuk dengan Google'}
+            </button>
+            {formError && <p className="form-error" role="alert">{formError}</p>}
+            <button type="button" className="cart-clear" onClick={() => setStep('cart')}>
+              Kembali ke keranjang
+            </button>
           </div>
         ) : step === 'checkout' ? (
           <form className="checkout-form" onSubmit={onSubmit}>

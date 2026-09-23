@@ -3,15 +3,10 @@ import { createPortal } from 'react-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
 import { useProducts, isEmpty, isLow, CATEGORIES } from '../../lib/products.jsx';
+import { formatRibuan } from '../../lib/money.js';
 import { IconPlus, IconSearch, IconBox } from '../../components/admin/icons.jsx';
 
 const EMPTY_FORM = { id: '', name: '', category: 'Ayam', price: '', stock: '', low: '20', desc: '', image: '' };
-
-// Tampil "15.000", simpan "15000" (digit saja, tanpa titik).
-function formatRibuan(value) {
-  if (value === '' || value == null) return '';
-  return new Intl.NumberFormat('id-ID').format(Number(value) || 0);
-}
 
 function formatPrice(price) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(price) || 0);

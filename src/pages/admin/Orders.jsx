@@ -16,6 +16,19 @@ const FILTERS = [
   ['Dibatalkan', ['cancelled']],
 ];
 
+const DATE_FILTERS = [
+  ['Semua waktu', null],
+  ['Hari ini', 1],
+  ['7 hari', 7],
+  ['30 hari', 30],
+];
+
+const PAY_FILTERS = [
+  ['Semua bayar', null],
+  ['Tunai', 'cash'],
+  ['QRIS', 'manual_qris'],
+];
+
 const TYPE_LABEL = Object.fromEntries(ORDER_TYPES);
 const PAY_LABEL = { cash: 'Tunai', manual_qris: 'QRIS' };
 
@@ -51,6 +64,8 @@ function timeOf(iso) {
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [active, setActive] = useState('Semua');
+  const [dateRange, setDateRange] = useState('Semua waktu');
+  const [payFilter, setPayFilter] = useState('Semua bayar');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -118,14 +133,23 @@ export default function Orders() {
   };
 
   const statuses = (FILTERS.find((f) => f[0] === active) || [])[1];
+  const days = (DATE_FILTERS.find((f) => f[0] === dateRange) || [])[1];
+  const payMethod = (PAY_FILTERS.find((f) => f[0] === payFilter) || [])[1];
+  const cutoff = days ? Date.now() - days * 24 * 60 * 60 * 1000 : 0;
   const filtered = orders.filter((o) => {
     const matchStatus = !statuses || statuses.includes(o.order_status);
+    const matchDate = !days || new Date(o.created_at).getTime() >= cutoff;
+    const method = (o.payments && o.payments[0] && o.payments[0].method) || 'cash';
+    const matchPay = !payMethod || method === payMethod;
     const q = search.trim().toLowerCase();
     const matchSearch = !q
       || o.order_number.toLowerCase().includes(q)
       || ((o.customers && o.customers.name) || '').toLowerCase().includes(q);
-    return matchStatus && matchSearch;
+    return matchStatus && matchDate && matchPay && matchSearch;
   });
+  const filteredTotal = filtered
+    .filter((o) => o.order_status !== 'cancelled')
+    .reduce((s, o) => s + (Number(o.total_idr) || 0), 0);
 
   return (
     <>
@@ -172,6 +196,43 @@ export default function Orders() {
               </button>
             ))}
           </div>
+
+          <div className="filter-bar">
+            <div className="chip-row" role="tablist" aria-label="Filter tanggal" style={{ marginBottom: 0 }}>
+              {DATE_FILTERS.map(([label]) => (
+                <button
+                  key={label}
+                  type="button"
+                  role="tab"
+                  aria-selected={dateRange === label}
+                  className={`chip${dateRange === label ? ' is-active' : ''}`}
+                  onClick={() => setDateRange(label)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="chip-row" role="tablist" aria-label="Filter pembayaran" style={{ marginBottom: 0 }}>
+              {PAY_FILTERS.map(([label]) => (
+                <button
+                  key={label}
+                  type="button"
+                  role="tab"
+                  aria-selected={payFilter === label}
+                  className={`chip${payFilter === label ? ' is-active' : ''}`}
+                  onClick={() => setPayFilter(label)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {!loading && !error && (
+            <p className="panel-desc">
+              <strong>{filtered.length}</strong> pesanan • Transaksi {formatIDR(filteredTotal)}
+            </p>
+          )}
 
           {loading ? (
             <EmptyState

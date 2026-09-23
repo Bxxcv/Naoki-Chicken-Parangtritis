@@ -4,6 +4,7 @@ import EmptyState from '../../components/admin/EmptyState.jsx';
 import { useProducts, isEmpty } from '../../lib/products.jsx';
 import { useSettings } from '../../lib/settings.jsx';
 import { formatIDR } from '../../lib/cart.jsx';
+import { formatRibuan, parseRupiah } from '../../lib/money.js';
 import { ORDER_TYPES, validateCustomer, createOrder, advanceOrder, markPaid } from '../../lib/orders.js';
 import { currentSession, openSession, adjustCash, sessionSummary, closeSession } from '../../lib/cash.js';
 import { IconPlus, IconSearch, IconBox } from '../../components/admin/icons.jsx';
@@ -32,6 +33,7 @@ export default function Pos() {
   const [type, setType] = useState('takeaway');
   const [payment, setPayment] = useState('cash');
   const [customer, setCustomer] = useState('Pelanggan');
+  const [cashReceived, setCashReceived] = useState('');
   const [orderError, setOrderError] = useState('');
   const [sending, setSending] = useState(false);
   const [receipt, setReceipt] = useState('');
@@ -85,6 +87,8 @@ export default function Pos() {
     return { ...prev, [id]: qty };
   });
 
+  const onRupiah = (setter) => (e) => setter(e.target.value.replace(/\D/g, '').slice(0, 13));
+
   const onOpen = async () => {
     const res = await openSession(opening);
     if (!res.ok) {
@@ -135,6 +139,13 @@ export default function Pos() {
       setOrderError(invalid);
       return;
     }
+    if (payment === 'cash') {
+      const received = parseRupiah(cashReceived);
+      if (received < total) {
+        setOrderError(`Tunai kurang ${formatIDR(total - received)}.`);
+        return;
+      }
+    }
     setSending(true);
     const res = await createOrder({
       customer: { name: customer.trim() || 'Pelanggan', phone: '', address: '' },
@@ -167,8 +178,9 @@ export default function Pos() {
       // Order tercatat; penyelesaian manual via Pesanan/Dapur.
     }
     setSending(false);
-    setReceipt(res.order_number);
+    setReceipt({ number: res.order_number, change: payment === 'cash' ? parseRupiah(cashReceived) - total : 0 });
     setCart({});
+    setCashReceived('');
     loadSession();
   };
 
@@ -198,10 +210,11 @@ export default function Pos() {
           {!session ? (
             <div className="filter-bar">
               <label className="search-field" style={{ maxWidth: 260 }}>
+                <span style={{ color: 'var(--a-muted)', fontWeight: 600, fontSize: '.87rem' }}>Rp</span>
                 <span className="visually-hidden">Modal awal</span>
                 <input
-                  type="number" min="0" placeholder="Modal awal (Rp)"
-                  value={opening} onChange={(e) => setOpening(e.target.value)}
+                  type="text" inputMode="numeric" placeholder="Modal awal"
+                  value={formatRibuan(opening)} onChange={onRupiah(setOpening)}
                 />
               </label>
               <button type="button" className="btn-primary" onClick={onOpen}>Buka sesi</button>
@@ -219,8 +232,9 @@ export default function Pos() {
                   <option value="in">Kas masuk</option>
                 </select>
                 <label className="search-field" style={{ maxWidth: 200 }}>
+                  <span style={{ color: 'var(--a-muted)', fontWeight: 600, fontSize: '.87rem' }}>Rp</span>
                   <span className="visually-hidden">Nominal</span>
-                  <input type="number" min="0" placeholder="Nominal (Rp)" value={adjAmount} onChange={(e) => setAdjAmount(e.target.value)} />
+                  <input type="text" inputMode="numeric" placeholder="Nominal" value={formatRibuan(adjAmount)} onChange={onRupiah(setAdjAmount)} />
                 </label>
                 <label className="search-field">
                   <span className="visually-hidden">Alasan</span>
@@ -231,8 +245,9 @@ export default function Pos() {
               {adjError && <p className="form-error" role="alert">{adjError}</p>}
               <div className="filter-bar">
                 <label className="search-field" style={{ maxWidth: 260 }}>
+                  <span style={{ color: 'var(--a-muted)', fontWeight: 600, fontSize: '.87rem' }}>Rp</span>
                   <span className="visually-hidden">Hitung kas fisik</span>
-                  <input type="number" min="0" placeholder="Hitung kas fisik (Rp)" value={declared} onChange={(e) => setDeclared(e.target.value)} />
+                  <input type="text" inputMode="numeric" placeholder="Hitung kas fisik" value={formatRibuan(declared)} onChange={onRupiah(setDeclared)} />
                 </label>
                 <button type="button" className="btn-primary" onClick={onClose}>Tutup &amp; rekonsiliasi</button>
               </div>
@@ -334,8 +349,32 @@ export default function Pos() {
                 </button>
               ))}
             </div>
+            {payment === 'cash' && lines.length > 0 && (
+              <>
+                <label className="form-field" style={{ marginTop: 12 }}>
+                  <span>Tunai diterima (Rp)</span>
+                  <div className="input-rp">
+                    <span aria-hidden="true">Rp</span>
+                    <input
+                      type="text" inputMode="numeric"
+                      value={formatRibuan(cashReceived)}
+                      onChange={onRupiah(setCashReceived)}
+                      placeholder="50.000"
+                    />
+                  </div>
+                </label>
+                <p className="panel-desc" style={{ marginTop: 8 }}>
+                  Kembalian: <strong>{formatIDR(Math.max(0, parseRupiah(cashReceived) - total))}</strong>
+                </p>
+              </>
+            )}
             {orderError && <p className="form-error" role="alert">{orderError}</p>}
-            {receipt && <p className="panel-desc" role="status"><strong>Selesai:</strong> {receipt}</p>}
+            {receipt && (
+              <p className="panel-desc" role="status">
+                <strong>Selesai:</strong> {receipt.number}
+                {receipt.change > 0 ? (<> • Kembalian {formatIDR(receipt.change)}</>) : ' • Uang pas'}
+              </p>
+            )}
             <div className="form-actions">
               <button type="button" className="btn-primary" disabled={sending || lines.length === 0} onClick={onComplete}>
                 {sending ? 'Memproses...' : `Selesaikan • ${formatIDR(total)}`}

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
-import { kitchenQueue, advanceOrder, cancelOrder, NEXT_STATUS, NEXT_LABEL, ORDER_TYPES } from '../../lib/orders.js';
+import { kitchenQueue, advanceOrder, cancelOrder, subscribeOrders, NEXT_STATUS, NEXT_LABEL, ORDER_TYPES } from '../../lib/orders.js';
 import { IconBox } from '../../components/admin/icons.jsx';
 
 // Antrean dibaca dari database. Dapur hanya boleh memajukan status /
@@ -46,6 +46,9 @@ export default function Kitchen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Status real-time: antrean refresh otomatis saat ada order baru/berubah.
+  useEffect(() => subscribeOrders(() => load()), [load]);
 
   const onAdvance = async (order) => {
     const to = NEXT_STATUS[order.order_status];
@@ -125,6 +128,7 @@ export default function Kitchen() {
                           </div>
                           <p className="kitchen-customer">
                             {(o.customers && o.customers.name) || 'Tamu'} • {TYPE_LABEL[o.order_type] || o.order_type}
+                            {' • '}{o.payment_status === 'paid' ? 'Lunas' : 'Belum bayar'}
                           </p>
                           <ul className="kitchen-items">
                             {(o.order_items || []).map((item, i) => (

@@ -4,6 +4,7 @@ import BrandLogo from '../components/customer/BrandLogo.jsx';
 import MenuCard from '../components/customer/MenuCard.jsx';
 import CartDrawer from '../components/customer/CartDrawer.jsx';
 import CartFab from '../components/customer/CartFab.jsx';
+import RiwayatFab from '../components/customer/RiwayatFab.jsx';
 import Toast from '../components/customer/Toast.jsx';
 import { useProducts } from '../lib/products.jsx';
 import { IconSearch, IconBox, IconArrowRight } from '../components/customer/icons.jsx';
@@ -117,6 +118,7 @@ export default function Menu() {
 
       <CartDrawer />
       <CartFab />
+      <RiwayatFab />
       <Toast />
     </div>
   );

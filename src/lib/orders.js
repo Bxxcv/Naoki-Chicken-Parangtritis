@@ -83,7 +83,7 @@ async function outletId() {
   return data.id;
 }
 
-export async function createOrder({ customer, type, items, paymentMethod, notes }) {
+export async function createOrder({ customer, type, items, paymentMethod, notes, proofFile }) {
   if (!supabase) return { ok: false, error: 'Backend belum terhubung.' };
   try {
     const oid = await outletId();
@@ -158,8 +158,22 @@ export async function createOrder({ customer, type, items, paymentMethod, notes 
     await supabase.from('order_status_history').insert({
       order_id: order.id, from_status: null, to_status: 'pending',
     });
+
+    // Bukti bayar QRIS wajib sudah dipilih (divalidasi di form).
+    let proofUrl = '';
+    if (paymentMethod === 'manual_qris') {
+      if (!proofFile) throw new Error('Foto bukti bayar wajib diupload.');
+      const ext = (proofFile.name.split('.').pop() || 'jpg').toLowerCase().slice(0, 4);
+      const path = `proofs/${number}.${ext}`;
+      const { error: proofError } = await supabase.storage
+        .from('payment-proofs')
+        .upload(path, proofFile, { contentType: proofFile.type, upsert: true });
+      if (proofError) throw new Error(`Upload bukti gagal: ${proofError.message}`);
+      proofUrl = path;
+    }
+
     await supabase.from('payments').insert({
-      order_id: order.id, method: paymentMethod, status: 'unpaid', amount_idr: subtotal,
+      order_id: order.id, method: paymentMethod, status: 'unpaid', amount_idr: subtotal, proof_url: proofUrl || null,
     });
 
     // Kurangi stok (finite). Race antar-pembeli diterima di MVP.
@@ -183,7 +197,7 @@ export async function trackOrder(number) {
   if (!code) return { ok: false, error: 'Masukkan nomor pesanan.' };
   const { data, error } = await supabase
     .from('orders')
-    .select('order_number,order_type,order_status,payment_status,total_idr,created_at,order_items(product_name_snapshot,quantity,unit_price_idr),order_status_history(to_status,created_at)')
+    .select('order_number,order_type,order_status,payment_status,total_idr,created_at,order_items(product_name_snapshot,quantity,unit_price_idr),payments(method,status),order_status_history(to_status,created_at)')
     .eq('order_number', code)
     .maybeSingle();
   if (error) return { ok: false, error: error.message };
@@ -198,12 +212,47 @@ export async function myOrders() {
   if (!user) return { ok: false, error: 'Masuk dulu untuk melihat riwayat.' };
   const { data, error } = await supabase
     .from('orders')
-    .select('order_number,order_type,order_status,payment_status,total_idr,created_at,order_items(product_name_snapshot,quantity,unit_price_idr)')
+    .select('order_number,order_type,order_status,payment_status,total_idr,created_at,order_items(product_name_snapshot,quantity,unit_price_idr),payments(method,status)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(50);
   if (error) return { ok: false, error: error.message };
   return { ok: true, orders: data || [] };
+}
+
+export async function markPaid(id) {
+  const { error: payError } = await supabase
+    .from('payments')
+    .update({ status: 'paid' })
+    .eq('order_id', id);
+  if (payError) return { ok: false, error: payError.message };
+  const { error: orderError } = await supabase
+    .from('orders')
+    .update({ payment_status: 'paid' })
+    .eq('id', id);
+  if (orderError) return { ok: false, error: orderError.message };
+  return { ok: true };
+}
+
+// Langganan perubahan status order. Kembalikan fungsi berhenti.
+// Gagal diam-diam bila realtime tak aktif (tombol muat ulang tetap ada).
+export function subscribeOrders(onChange) {
+  try {
+    if (!supabase) return () => {};
+    const channel = supabase
+      .channel('orders-status')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, onChange)
+      .subscribe();
+    return () => {
+      try {
+        supabase.removeChannel(channel);
+      } catch {
+        // Abaikan.
+      }
+    };
+  } catch {
+    return () => {};
+  }
 }
 
 export async function kitchenQueue() {
@@ -212,7 +261,7 @@ export async function kitchenQueue() {
   if (!outlet) return { ok: false, error: 'Outlet belum siap.' };
   const { data, error } = await supabase
     .from('orders')
-    .select('id,order_number,order_type,order_status,created_at,customers(name),order_items(product_name_snapshot,quantity)')
+    .select('id,order_number,order_type,order_status,payment_status,created_at,customers(name),order_items(product_name_snapshot,quantity)')
     .eq('outlet_id', outlet.id)
     .in('order_status', ['pending', 'confirmed', 'preparing', 'ready'])
     .order('created_at', { ascending: true })

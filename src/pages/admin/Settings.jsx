@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
 import { useSettings, DEFAULTS } from '../../lib/settings.jsx';
+import { supabase } from '../../lib/supabase.js';
 import { IconBox } from '../../components/admin/icons.jsx';
 
 // Hari tampil Sen–Min, simpan format JS getDay (Min=0).
@@ -48,6 +49,8 @@ export default function Settings() {
   const [formError, setFormError] = useState('');
   const [savedAt, setSavedAt] = useState('');
   const [saving, setSaving] = useState(false);
+  const [qrisFile, setQrisFile] = useState(null);
+  const [qrisPreview, setQrisPreview] = useState('');
 
   useEffect(() => {
     if (status === 'ready') {
@@ -65,9 +68,41 @@ export default function Settings() {
     setDraft((prev) => ({ ...prev, open_days: JSON.stringify(next) }));
   };
 
+  const onQris = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setFormError('QRIS harus gambar (JPG/PNG).');
+      return;
+    }
+    if (file.size > 1500000) {
+      setFormError('Foto QRIS maksimal 1,5 MB.');
+      return;
+    }
+    setFormError('');
+    setQrisFile(file);
+    setQrisPreview(URL.createObjectURL(file));
+  };
+
   const onSave = async () => {
     setFormError('');
     setSaving(true);
+    let qrisUrl = draft.qris_image_url || '';
+    if (qrisFile) {
+      const ext = (qrisFile.name.split('.').pop() || 'jpg').toLowerCase().slice(0, 4);
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(`qris/qris.${ext}`, qrisFile, { contentType: qrisFile.type, upsert: true });
+      if (uploadError) {
+        setSaving(false);
+        setFormError(`Upload QRIS gagal: ${uploadError.message}`);
+        return;
+      }
+      const { data } = supabase.storage.from('product-images').getPublicUrl(`qris/qris.${ext}`);
+      qrisUrl = data.publicUrl;
+      setQrisFile(null);
+      setQrisPreview('');
+    }
     const result = await save({
       outlet_name: draft.outlet_name.trim() || DEFAULTS.outlet_name,
       address: draft.address.trim(),
@@ -80,6 +115,7 @@ export default function Settings() {
       pickup: draft.pickup,
       delivery: draft.delivery,
       force_closed: draft.force_closed,
+      qris_image_url: qrisUrl,
     });
     setSaving(false);
     if (!result.ok) {
@@ -220,6 +256,22 @@ export default function Settings() {
                     </label>
                   </div>
                   <p className="panel-desc mt-2">Tampil di footer landing setelah disimpan.</p>
+                </section>
+
+                <section className="panel">
+                  <div className="panel-head"><h3>QRIS outlet</h3></div>
+                  <div className="photo-row">
+                    <div className="photo-preview" aria-hidden="true">
+                      {(qrisPreview || draft.qris_image_url)
+                        ? <img src={qrisPreview || draft.qris_image_url} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        : <IconBox size={22} />}
+                    </div>
+                    <label className="btn-outline btn-sm photo-pick">
+                      Pilih foto QRIS
+                      <input type="file" accept="image/*" onChange={onQris} hidden />
+                    </label>
+                  </div>
+                  <p className="panel-desc mt-2">Tampil di checkout saat pelanggan pilih QRIS.</p>
                 </section>
 
                 <section className="panel">

@@ -5,14 +5,13 @@ import BrandLogo from '../components/customer/BrandLogo.jsx';
 import HeroVideo from '../components/customer/HeroVideo.jsx';
 import CartDrawer from '../components/customer/CartDrawer.jsx';
 import CartFab from '../components/customer/CartFab.jsx';
+import RiwayatFab from '../components/customer/RiwayatFab.jsx';
 import Toast from '../components/customer/Toast.jsx';
 import Faq from '../components/customer/Faq.jsx';
 import useReveal from '../lib/useReveal.js';
 import { useCart } from '../lib/cart.jsx';
 import { useProducts } from '../lib/products.jsx';
 import { useSettings, openInfo } from '../lib/settings.jsx';
-import { trackOrder, STATUS_LABEL } from '../lib/orders.js';
-import { formatIDR } from '../lib/cart.jsx';
 import { categoryKey } from '../lib/categories.js';
 import { CATEGORY_COMPONENTS } from '../components/customer/icons.jsx';
 import {
@@ -85,69 +84,6 @@ function SocialButtons() {
           <Icon size={19} />
         </button>
       ))}
-    </div>
-  );
-}
-
-// Pelacakan nomor pesanan asli dari database.
-function TrackBox() {
-  const { notify } = useCart();
-  const [number, setNumber] = useState('');
-  const [result, setResult] = useState(null);
-  const [checking, setChecking] = useState(false);
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    if (!number.trim()) {
-      notify('Masukkan nomor pesanan dulu.');
-      return;
-    }
-    setChecking(true);
-    const res = await trackOrder(number);
-    setChecking(false);
-    setResult(res);
-  };
-
-  const steps = ['pending', 'confirmed', 'preparing', 'ready', 'completed'];
-  const order = result && result.ok ? result.order : null;
-  const currentIdx = order ? steps.indexOf(order.order_status) : -1;
-
-  return (
-    <div style={{ flex: '1 1 320px', minWidth: 0 }}>
-      <form className="track-box" onSubmit={onSubmit}>
-        <label className="visually-hidden" htmlFor="track-number">Nomor pesanan</label>
-        <input
-          id="track-number"
-          type="text"
-          placeholder="cth: NK-260101-AB12"
-          value={number}
-          onChange={(e) => setNumber(e.target.value)}
-          maxLength={20}
-        />
-        <button type="submit" className="btn-dark" disabled={checking}>
-          {checking ? 'Mencari...' : (<>Lacak sekarang <IconArrowRight size={16} /></>)}
-        </button>
-      </form>
-      {result && !result.ok && <p className="form-error" role="alert">{result.error}</p>}
-      {order && (
-        <div className="track-result">
-          <div className="track-result-head">
-            <strong>{order.order_number}</strong>
-            <span className="status-badge badge-success">{STATUS_LABEL[order.order_status] || order.order_status}</span>
-          </div>
-          <p className="cart-note">
-            {(order.order_items || []).map((i) => `${i.quantity}× ${i.product_name_snapshot}`).join(', ')}
-            {' '}• Total {formatIDR(order.total_idr)}
-          </p>
-          <ol className="track-timeline">
-            {steps.map((s, i) => (
-              <li key={s} className={i < currentIdx ? 'is-done' : i === currentIdx ? 'is-now' : ''}>
-                {STATUS_LABEL[s]}
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
     </div>
   );
 }
@@ -286,18 +222,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="track-band" id="lacak">
-        <div className="shell-container track-band-inner">
-          <span className="track-badge"><IconSearch size={18} /></span>
-          <div className="track-copy">
-            <span className="eyebrow eyebrow--red">Status pesanan</span>
-            <h2>Sudah memesan?</h2>
-            <p>Masukkan nomor pesanan untuk melihat proses terbaru.</p>
-          </div>
-          <TrackBox />
-        </div>
-      </section>
-
       <section className="value-section">
         <div className="shell-container value-grid">
           {VALUES.map(({ icon: Icon, title, desc }) => (
@@ -355,8 +279,8 @@ export default function Home() {
             <div className="footer-col">
               <h4>Pesanan Anda</h4>
               <ul>
-                <li><a href="#lacak">Lacak pesanan</a></li>
                 <li><Link to="/riwayat">Riwayat pesanan</Link></li>
+                <li><a href="#riwayat">Cara pesan</a></li>
                 <li><FooterPaymentButton /></li>
                 <li><Link to="/masuk">Akun</Link></li>
               </ul>
@@ -387,6 +311,7 @@ export default function Home() {
       </footer>
       <CartDrawer />
       <CartFab />
+      <RiwayatFab />
       <Toast />
     </div>
   );

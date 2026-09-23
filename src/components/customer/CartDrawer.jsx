@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useCart, formatIDR } from '../../lib/cart.jsx';
 import { useAuth } from '../../lib/auth.jsx';
 import { useSettings } from '../../lib/settings.jsx';
@@ -21,9 +22,12 @@ export default function CartDrawer() {
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
   const [payment, setPayment] = useState('cash');
+  const [proofFile, setProofFile] = useState(null);
   const [formError, setFormError] = useState('');
   const [sending, setSending] = useState(false);
   const [receipt, setReceipt] = useState(null);
+
+  const qrisUrl = settings.qris_image_url || '';
 
   const channels = ORDER_TYPES.filter(([key]) => settings[key] !== 'false');
   const activeType = channels.some(([key]) => key === type) ? type : (channels[0] ? channels[0][0] : 'takeaway');
@@ -36,11 +40,30 @@ export default function CartDrawer() {
     }, 300);
   };
 
+  const onProof = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setFormError('Bukti harus foto (JPG/PNG).');
+      return;
+    }
+    if (file.size > 3000000) {
+      setFormError('Foto bukti maksimal 3 MB.');
+      return;
+    }
+    setFormError('');
+    setProofFile(file);
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     const invalid = validateCustomer({ name, phone, address, type: activeType });
     if (invalid) {
       setFormError(invalid);
+      return;
+    }
+    if (payment === 'manual_qris' && !proofFile) {
+      setFormError('Foto bukti bayar wajib diupload untuk QRIS.');
       return;
     }
     setSending(true);
@@ -50,6 +73,7 @@ export default function CartDrawer() {
       items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty })),
       paymentMethod: payment,
       notes,
+      proofFile: payment === 'manual_qris' ? proofFile : null,
     });
     setSending(false);
     if (!result.ok) {
@@ -86,8 +110,8 @@ export default function CartDrawer() {
         {step === 'done' && receipt ? (          <div className="cart-empty">
             <p><strong>Pesanan diterima!</strong></p>
             <p className="receipt-number">{receipt.order_number}</p>
-            <p>Simpan nomor ini untuk melacak pesanan. Total {formatIDR(receipt.total)} — bayar {payment === 'cash' ? 'tunai di tempat' : 'via QRIS ke kasir'}.</p>
-            <button type="button" className="btn-gold" onClick={close}>Selesai</button>
+            <p>Simpan nomor ini. Total {formatIDR(receipt.total)}.</p>
+            <Link to="/riwayat" className="btn-gold" onClick={close}>Cek Pesanan Kamu</Link>
           </div>
         ) : step === 'checkout' && !user ? (
           <div className="cart-empty">
@@ -155,6 +179,20 @@ export default function CartDrawer() {
                 </label>
               ))}
             </div>
+            {payment === 'manual_qris' && (
+              <div className="checkout-group">
+                {qrisUrl ? (
+                  <img className="qris-image" src={qrisUrl} alt="QRIS Naoki Chicken Parangtritis" loading="lazy" />
+                ) : (
+                  <p className="cart-note">QRIS outlet belum dipasang — pilih tunai atau hubungi outlet.</p>
+                )}
+                <label className="checkout-field">
+                  <span>Foto bukti bayar *</span>
+                  <input type="file" accept="image/*" onChange={onProof} />
+                </label>
+                {proofFile && <p className="cart-note">Terpilih: {proofFile.name}</p>}
+              </div>
+            )}
             {formError && <p className="form-error" role="alert">{formError}</p>}
             <div className="cart-foot">
               <div className="cart-total">

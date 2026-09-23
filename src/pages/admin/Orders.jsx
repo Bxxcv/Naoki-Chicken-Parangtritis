@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
 import { supabase } from '../../lib/supabase.js';
-import { advanceOrder, cancelOrder, NEXT_STATUS, NEXT_LABEL, STATUS_LABEL, ORDER_TYPES } from '../../lib/orders.js';
+import { advanceOrder, cancelOrder, markPaid, NEXT_STATUS, NEXT_LABEL, STATUS_LABEL, ORDER_TYPES } from '../../lib/orders.js';
 import { formatIDR } from '../../lib/cart.jsx';
 import { IconPlus, IconSearch, IconFilter, IconOrders } from '../../components/admin/icons.jsx';
 
@@ -17,6 +17,28 @@ const FILTERS = [
 ];
 
 const TYPE_LABEL = Object.fromEntries(ORDER_TYPES);
+const PAY_LABEL = { cash: 'Tunai', manual_qris: 'QRIS' };
+
+// Bukti di bucket privat → tanda tangan URL 1 jam agar bisa dibuka.
+function ProofLink({ url }) {
+  const [href, setHref] = useState('');
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!url) return;
+      if (/^https?:\/\//.test(url)) {
+        if (alive) setHref(url);
+        return;
+      }
+      if (!supabase) return;
+      const { data } = await supabase.storage.from('payment-proofs').createSignedUrl(url, 3600);
+      if (alive && data) setHref(data.signedUrl);
+    })();
+    return () => { alive = false; };
+  }, [url]);
+  if (!href) return <span>Bukti dimuat...</span>;
+  return <a href={href} target="_blank" rel="noreferrer">Lihat bukti</a>;
+}
 
 function timeOf(iso) {
   try {
@@ -49,7 +71,7 @@ export default function Orders() {
     }
     const { data, error: listError } = await supabase
       .from('orders')
-      .select('id,order_number,order_type,order_status,total_idr,created_at,customers(name,phone),order_items(product_name_snapshot,quantity)')
+      .select('id,order_number,order_type,order_status,payment_status,total_idr,created_at,customers(name,phone),order_items(product_name_snapshot,quantity),payments(method,status,proof_url)')
       .eq('outlet_id', outlet.id)
       .order('created_at', { ascending: false })
       .limit(100);
@@ -81,6 +103,15 @@ export default function Orders() {
     if (!window.confirm(`Batalkan ${order.order_number}? Stok dikembalikan.`)) return;
     setBusy(order.id);
     const res = await cancelOrder(order.id);
+    setBusy('');
+    if (!res.ok) setError(res.error);
+    else load();
+  };
+
+  const onPaid = async (order) => {
+    if (!window.confirm(`Tandai ${order.order_number} lunas?`)) return;
+    setBusy(order.id);
+    const res = await markPaid(order.id);
     setBusy('');
     if (!res.ok) setError(res.error);
     else load();
@@ -162,7 +193,9 @@ export default function Orders() {
             />
           ) : (
             <div className="stack">
-              {filtered.map((o) => (
+              {filtered.map((o) => {
+                const pay = (o.payments && o.payments[0]) || {};
+                return (
                 <article className="kitchen-card" key={o.id}>
                   <div className="kitchen-card-head">
                     <strong>{o.order_number}</strong>
@@ -181,6 +214,10 @@ export default function Orders() {
                       <li key={i}>{item.quantity}× {item.product_name_snapshot}</li>
                     ))}
                   </ul>
+                  <p className="kitchen-customer">
+                    {PAY_LABEL[pay.method] || 'Tunai'} • {o.payment_status === 'paid' ? 'Lunas' : 'Belum bayar'}
+                    {pay.proof_url ? (<> • <ProofLink url={pay.proof_url} /></>) : null}
+                  </p>
                   <div className="kitchen-card-head">
                     <span className="cart-note">Total {formatIDR(o.total_idr)}</span>
                     <div className="kitchen-actions" style={{ marginTop: 0 }}>
@@ -192,6 +229,16 @@ export default function Orders() {
                           onClick={() => onAdvance(o)}
                         >
                           {NEXT_LABEL[o.order_status]}
+                        </button>
+                      )}
+                      {o.payment_status !== 'paid' && o.order_status !== 'cancelled' && (
+                        <button
+                          type="button"
+                          className="btn-outline btn-sm"
+                          disabled={busy === o.id}
+                          onClick={() => onPaid(o)}
+                        >
+                          Tandai lunas
                         </button>
                       )}
                       {!['completed', 'cancelled'].includes(o.order_status) && (
@@ -207,7 +254,8 @@ export default function Orders() {
                     </div>
                   </div>
                 </article>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

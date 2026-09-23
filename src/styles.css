@@ -297,32 +297,6 @@ img { max-width: 100%; display: block; }
 .btn-red:hover { background: var(--c-red-dark); color: #fff; }
 .btn-red:active { transform: scale(.97); }
 
-/* -- Pita lacak pesanan -- */
-.track-band { background: var(--c-cream); border-block: 1px solid var(--c-line); }
-.track-band-inner {
-  display: flex; align-items: center; gap: 20px;
-  padding-block: 30px; flex-wrap: wrap;
-}
-.track-badge {
-  width: 52px; height: 52px; border-radius: 12px; flex: 0 0 auto;
-  background: var(--c-gold); color: var(--c-dark);
-  display: grid; place-items: center;
-}
-.track-copy { flex: 1 1 220px; }
-.track-copy .eyebrow { margin-bottom: 6px; }
-.track-copy h2 { font-size: 1.5rem; font-weight: 600; }
-.track-copy p { margin: 6px 0 0; color: var(--c-muted); font-size: .9rem; }
-.track-box {
-  flex: 1 1 320px; display: flex; gap: 10px; flex-wrap: wrap;
-}
-.track-box input {
-  flex: 1 1 180px; border: 1px solid var(--c-line); border-radius: 10px;
-  padding: 13px 15px; font-family: var(--font-body); font-size: .92rem;
-  color: var(--c-ink); background: #fff; outline: none; min-width: 0;
-}
-.track-box input:focus { border-color: var(--c-gold-dark); }
-.track-box .btn-dark { white-space: nowrap; }
-
 /* -- Nilai (3 poin) -- */
 .value-section { padding-block: 56px 8px; }
 .value-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px; }
@@ -755,6 +729,18 @@ img { max-width: 100%; display: block; }
   min-width: 22px; height: 22px;
   font-size: .7rem;
   top: -3px; right: -3px;
+}
+.riwayat-fab {
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  background: var(--c-dark);
+  box-shadow: 0 14px 30px rgba(31, 15, 14, .35);
+}
+.riwayat-fab:hover { background: #000; }
+
+/* -- QRIS checkout -- */
+.qris-image {
+  width: min(220px, 100%); border-radius: 12px;
+  border: 1px solid var(--c-line);
 }
 
 /* -- Band merah -- */

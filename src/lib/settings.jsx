@@ -18,6 +18,7 @@ export const DEFAULTS = {
   pickup: 'true',
   delivery: 'true',
   force_closed: 'false',
+  qris_image_url: '',
 };
 
 const DAY_NAMES = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];

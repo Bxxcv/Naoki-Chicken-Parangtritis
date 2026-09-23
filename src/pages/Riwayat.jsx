@@ -2,9 +2,19 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BrandLogo from '../components/customer/BrandLogo.jsx';
 import { useAuth } from '../lib/auth.jsx';
-import { myOrders, STATUS_LABEL } from '../lib/orders.js';
+import { myOrders, subscribeOrders, STATUS_LABEL } from '../lib/orders.js';
 import { formatIDR } from '../lib/cart.jsx';
 import { IconBox, IconArrowRight } from '../components/customer/icons.jsx';
+
+const FILTERS = [
+  ['Semua', null],
+  ['Aktif', ['pending', 'confirmed', 'preparing', 'ready']],
+  ['Selesai', ['completed']],
+  ['Dibatalkan', ['cancelled']],
+];
+
+const PAY_LABEL = { cash: 'Tunai', manual_qris: 'QRIS' };
+const PAY_STATUS = { unpaid: 'Belum bayar', pending: 'Diproses', paid: 'Lunas', failed: 'Gagal', expired: 'Kadaluarsa', refunded: 'Refund' };
 
 function timeOf(iso) {
   try {
@@ -20,6 +30,9 @@ export default function Riwayat() {
   const [orders, setOrders] = useState([]);
   const [state, setState] = useState('loading');
   const [error, setError] = useState('');
+
+  const [filter, setFilter] = useState('Semua');
+  const [expanded, setExpanded] = useState(null);
 
   const load = useCallback(async () => {
     setState('loading');
@@ -38,6 +51,15 @@ export default function Riwayat() {
     if (!loading && user) load();
     if (!loading && !user) setState('empty');
   }, [loading, user, load]);
+
+  // Status real-time: muat ulang saat ada perubahan order.
+  useEffect(() => {
+    if (!user) return undefined;
+    return subscribeOrders(() => load());
+  }, [user, load]);
+
+  const statuses = (FILTERS.find((f) => f[0] === filter) || [])[1];
+  const visible = !statuses ? orders : orders.filter((o) => statuses.includes(o.order_status));
 
   return (
     <div className="customer-shell">
@@ -85,25 +107,74 @@ export default function Riwayat() {
         )}
 
         {state === 'ready' && orders.length > 0 && (
-          <div className="menu-page-grid">
-            {orders.map((o) => (
-              <article className="menu-card" key={o.order_number}>
-                <div className="menu-body">
-                  <div className="menu-head">
-                    <h3>{o.order_number}</h3>
-                    <span className="status-badge badge-success">{STATUS_LABEL[o.order_status] || o.order_status}</span>
-                  </div>
-                  <p className="menu-desc">
-                    {(o.order_items || []).map((i) => `${i.quantity}× ${i.product_name_snapshot}`).join(', ')}
-                  </p>
-                  <div className="menu-head">
-                    <span className="cart-note">{timeOf(o.created_at)}</span>
-                    <span className="menu-price">{formatIDR(o.total_idr)}</span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          <>
+            <div className="cat-tabs" role="tablist" aria-label="Filter status riwayat">
+              {FILTERS.map(([label]) => (
+                <button
+                  key={label}
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === label}
+                  className={`cat-tab${filter === label ? ' is-active' : ''}`}
+                  onClick={() => setFilter(label)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {visible.length === 0 ? (
+              <p className="section-note">Tidak ada pesanan pada filter ini.</p>
+            ) : (
+              <div className="menu-page-grid">
+                {visible.map((o) => {
+                  const pay = (o.payments && o.payments[0]) || {};
+                  const steps = ['pending', 'confirmed', 'preparing', 'ready', 'completed'];
+                  const currentIdx = steps.indexOf(o.order_status);
+                  const open = expanded === o.order_number;
+                  return (
+                    <article className="menu-card" key={o.order_number}>
+                      <div className="menu-body">
+                        <div className="menu-head">
+                          <h3>{o.order_number}</h3>
+                          <span className={`status-badge ${o.order_status === 'cancelled' ? 'badge-danger' : o.order_status === 'completed' ? 'badge-muted' : 'badge-success'}`}>
+                            {STATUS_LABEL[o.order_status] || o.order_status}
+                          </span>
+                        </div>
+                        <p className="menu-desc">
+                          {(o.order_items || []).map((i) => `${i.quantity}× ${i.product_name_snapshot}`).join(', ')}
+                        </p>
+                        <p className="cart-note">
+                          {PAY_LABEL[pay.method] || 'Tunai'} • {PAY_STATUS[pay.status] || o.payment_status}
+                        </p>
+                        <div className="menu-head">
+                          <span className="cart-note">{timeOf(o.created_at)}</span>
+                          <span className="menu-price">{formatIDR(o.total_idr)}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="cart-clear"
+                          style={{ textAlign: 'left', marginTop: 6 }}
+                          aria-expanded={open}
+                          onClick={() => setExpanded(open ? null : o.order_number)}
+                        >
+                          {open ? 'Tutup detail' : 'Lihat detail'}
+                        </button>
+                        {open && o.order_status !== 'cancelled' && (
+                          <ol className="track-timeline">
+                            {steps.map((s, i) => (
+                              <li key={s} className={i < currentIdx ? 'is-done' : i === currentIdx ? 'is-now' : ''}>
+                                {STATUS_LABEL[s]}
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

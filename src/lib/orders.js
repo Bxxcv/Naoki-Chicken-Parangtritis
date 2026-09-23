@@ -100,6 +100,15 @@ export async function createOrder({ customer, type, items, paymentMethod, notes 
     const subtotal = lines.reduce((s, l) => s + l.line_total_idr, 0);
     const number = orderNumber();
 
+    // Tautkan ke akun bila pembeli login (untuk halaman Riwayat).
+    let userId = null;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      userId = (sessionData && sessionData.session && sessionData.session.user && sessionData.session.user.id) || null;
+    } catch {
+      userId = null;
+    }
+
     const { data: cust, error: custError } = await supabase
       .from('customers')
       .insert({ name: customer.name.trim(), phone: customer.phone.trim(), address: (customer.address || '').trim() })
@@ -112,6 +121,7 @@ export async function createOrder({ customer, type, items, paymentMethod, notes 
       .insert({
         outlet_id: oid,
         customer_id: cust.id,
+        user_id: userId,
         order_number: number,
         order_type: type,
         order_status: 'pending',
@@ -163,6 +173,21 @@ export async function trackOrder(number) {
   if (error) return { ok: false, error: error.message };
   if (!data) return { ok: false, error: 'Nomor tidak ditemukan. Periksa kembali.' };
   return { ok: true, order: data };
+}
+
+export async function myOrders() {
+  if (!supabase) return { ok: false, error: 'Backend belum terhubung.' };
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData && sessionData.session && sessionData.session.user;
+  if (!user) return { ok: false, error: 'Masuk dulu untuk melihat riwayat.' };
+  const { data, error } = await supabase
+    .from('orders')
+    .select('order_number,order_type,order_status,payment_status,total_idr,created_at,order_items(product_name_snapshot,quantity,unit_price_idr)')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, orders: data || [] };
 }
 
 export async function kitchenQueue() {

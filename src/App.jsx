@@ -5,6 +5,8 @@ import { SettingsProvider } from './lib/settings.jsx';
 import { CartProvider } from './lib/cart.jsx';
 import Home from './pages/Home.jsx';
 import Menu from './pages/Menu.jsx';
+import Masuk from './pages/Masuk.jsx';
+import Riwayat from './pages/Riwayat.jsx';
 import AdminLayout from './components/admin/AdminLayout.jsx';
 import Dashboard from './pages/admin/Dashboard.jsx';
 import Orders from './pages/admin/Orders.jsx';
@@ -32,6 +34,8 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/menu" element={<Menu />} />
+      <Route path="/masuk" element={<Masuk />} />
+      <Route path="/riwayat" element={<Riwayat />} />
       <Route
         path="/admin/*"
         element={

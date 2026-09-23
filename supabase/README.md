@@ -17,3 +17,7 @@ Do not claim a migration is executed just because the file exists.
   + bucket `product-images` + RLS (DRAFT). Jalankan manual di SQL Editor.
 - `migrations/0003_categories_write.sql` — izin tulis kategori untuk
   authenticated (DRAFT). Jalankan menyusul 0002.
+- `migrations/0005_orders.sql` — customers/orders/items/history/
+  payments + RLS tamu & operasional (DRAFT).
+- `migrations/0006_order_ownership.sql` — tautan order ke akun login
+  (user_id) + baca milik sendiri (DRAFT).

@@ -35,9 +35,20 @@ export function AuthProvider({ children }) {
     if (supabase) await supabase.auth.signOut();
   }, []);
 
+  // Login Google (OAuth). Redirect kembali ke halaman depan.
+  const signInWithGoogle = useCallback(async () => {
+    if (!supabase) return { ok: false, error: 'Backend belum terhubung.' };
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) return { ok: false, error: 'Login Google belum dikonfigurasi.' };
+    return { ok: true };
+  }, []);
+
   const value = useMemo(
-    () => ({ session, user: session ? session.user : null, loading, signIn, signOut, configured: isSupabaseConfigured }),
-    [session, loading, signIn, signOut],
+    () => ({ session, user: session ? session.user : null, loading, signIn, signInWithGoogle, signOut, configured: isSupabaseConfigured }),
+    [session, loading, signIn, signInWithGoogle, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

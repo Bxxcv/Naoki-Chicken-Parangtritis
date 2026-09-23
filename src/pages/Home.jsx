@@ -356,9 +356,9 @@ export default function Home() {
               <h4>Pesanan Anda</h4>
               <ul>
                 <li><a href="#lacak">Lacak pesanan</a></li>
-                <li><a href="#riwayat">Riwayat pesanan</a></li>
+                <li><Link to="/riwayat">Riwayat pesanan</Link></li>
                 <li><FooterPaymentButton /></li>
-                <li><a href="#profil">Profil</a></li>
+                <li><Link to="/masuk">Akun</Link></li>
               </ul>
             </div>
 

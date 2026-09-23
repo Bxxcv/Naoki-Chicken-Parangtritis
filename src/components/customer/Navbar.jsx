@@ -7,8 +7,8 @@ import { Link } from 'react-router-dom';
 const NAV = [
   { label: 'Beranda', href: '#beranda' },
   { label: 'Menu', to: '/menu' },
-  { label: 'Riwayat', href: '#riwayat' },
-  { label: 'Profil', href: '#profil' },
+  { label: 'Riwayat', to: '/riwayat' },
+  { label: 'Masuk', to: '/masuk' },
 ];
 
 export default function Navbar() {

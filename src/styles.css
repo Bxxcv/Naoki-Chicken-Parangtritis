@@ -1003,6 +1003,7 @@ img { max-width: 100%; display: block; }
 .panel-meta { font-size: .8rem; color: var(--a-muted); }
 .panel-desc { font-size: .84rem; color: var(--a-muted); margin: 0 0 14px; line-height: 1.6; }
 .panel-desc.mt-2 { margin: 12px 0 0; }
+.panel-danger { border-color: #f0b4ac; }
 .icon-link { background: none; border: 0; color: var(--a-accent); cursor: pointer; padding: 4px; display: inline-flex; }
 
 .empty-state {
@@ -1304,6 +1305,30 @@ img { max-width: 100%; display: block; }
 .pos-item strong { font-size: .86rem; }
 .pos-item span { font-size: .82rem; font-weight: 700; color: var(--a-accent); }
 .pos-item small { font-size: .74rem; color: var(--a-muted); }
+
+/* -- Grafik batang CSS (data nyata) -- */
+.bar-chart {
+  display: flex; align-items: stretch; gap: 8px;
+  min-height: 190px; padding-top: 8px;
+  overflow-x: auto;
+}
+.bar-col {
+  flex: 1 1 0; min-width: 44px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px;
+}
+.bar-value { font-size: .68rem; font-weight: 700; color: var(--a-muted); min-height: 16px; }
+.bar-track {
+  flex: 1; width: 100%; min-height: 110px;
+  background: var(--a-bg); border-radius: 8px;
+  display: flex; align-items: flex-end; overflow: hidden;
+}
+.bar-fill {
+  width: 100%; background: var(--a-accent);
+  border-radius: 8px 8px 0 0; min-height: 0;
+  transition: height .4s cubic-bezier(.22,1,.36,1);
+}
+.bar-label { font-size: .68rem; color: var(--a-muted); white-space: nowrap; }
 
 /* -- Drawer admin (layar kecil) -- */
 .admin-drawer-open, .admin-drawer-close {

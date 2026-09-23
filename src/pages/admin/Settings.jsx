@@ -51,6 +51,9 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [qrisFile, setQrisFile] = useState(null);
   const [qrisPreview, setQrisPreview] = useState('');
+  const [wipeText, setWipeText] = useState('');
+  const [wiping, setWiping] = useState(false);
+  const [wipeResult, setWipeResult] = useState('');
 
   useEffect(() => {
     if (status === 'ready') {
@@ -68,7 +71,41 @@ export default function Settings() {
     setDraft((prev) => ({ ...prev, open_days: JSON.stringify(next) }));
   };
 
-  const onQris = (e) => {
+  // DANGER ZONE: hapus SEMUA data transaksi demo (order + bayar +
+  // riwayat + pelanggan tes). Produk, kategori, pengaturan AMAN.
+  // Untuk demo/jualan: bersihkan jejak tes sebelum serah terima.
+  const onWipe = async () => {
+    setWipeResult('');
+    if (wipeText.trim().toUpperCase() !== 'HAPUS') {
+      setWipeResult('Ketik HAPUS (huruf besar) untuk konfirmasi.');
+      return;
+    }
+    if (!window.confirm('Yakin hapus SEMUA pesanan, pembayaran, dan pelanggan tes? Produk dan pengaturan tidak ikut terhapus.')) return;
+    setWiping(true);
+    try {
+      const { data: outlet } = await supabase.from('outlets').select('id').eq('slug', 'parangtritis').single();
+      if (!outlet) throw new Error('Outlet tidak ditemukan.');
+      const { data: orders } = await supabase.from('orders').select('id,customer_id').eq('outlet_id', outlet.id);
+      const ids = (orders || []).map((o) => o.id);
+      const custIds = [...new Set((orders || []).map((o) => o.customer_id).filter(Boolean))];
+      if (ids.length > 0) {
+        for (const table of ['order_status_history', 'payments', 'order_items']) {
+          const { error } = await supabase.from(table).delete().in('order_id', ids);
+          if (error) throw new Error(error.message);
+        }
+        const { error: orderError } = await supabase.from('orders').delete().in('id', ids);
+        if (orderError) throw new Error(orderError.message);
+      }
+      if (custIds.length > 0) {
+        await supabase.from('customers').delete().in('id', custIds);
+      }
+      setWipeResult(`Beresih: ${ids.length} pesanan + ${custIds.length} pelanggan tes dihapus.`);
+      setWipeText('');
+    } catch (err) {
+      setWipeResult(err.message || 'Gagal mereset.');
+    }
+    setWiping(false);
+  };
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -280,6 +317,28 @@ export default function Settings() {
                     <span className="dot dot--ready" />
                     {status === 'ready' ? 'Terhubung database outlet' : 'Memuat...'}
                   </p>
+                </section>
+
+                <section className="panel panel-danger">
+                  <div className="panel-head"><h3>Zona berbahaya</h3></div>
+                  <p className="panel-desc">
+                    Reset data demo: hapus semua pesanan, pembayaran, riwayat,
+                    dan pelanggan tes. Produk, kategori, dan pengaturan
+                    <strong> tidak ikut terhapus</strong>. Untuk demo/jualan.
+                  </p>
+                  <div className="filter-bar">
+                    <label className="search-field" style={{ maxWidth: 220 }}>
+                      <span className="visually-hidden">Ketik HAPUS</span>
+                      <input
+                        type="text" placeholder="Ketik HAPUS"
+                        value={wipeText} onChange={(e) => setWipeText(e.target.value)}
+                      />
+                    </label>
+                    <button type="button" className="btn-primary" disabled={wiping} onClick={onWipe} style={{ background: '#b42318', borderColor: '#b42318' }}>
+                      {wiping ? 'Menghapus...' : 'Reset data demo'}
+                    </button>
+                  </div>
+                  {wipeResult && <p className="panel-desc" role="status">{wipeResult}</p>}
                 </section>
               </div>
             </div>

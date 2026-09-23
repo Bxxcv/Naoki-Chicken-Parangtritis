@@ -13,6 +13,7 @@ import Orders from './pages/admin/Orders.jsx';
 import Pos from './pages/admin/Pos.jsx';
 import Pelanggan from './pages/admin/Pelanggan.jsx';
 import Pengeluaran from './pages/admin/Pengeluaran.jsx';
+import Laporan from './pages/admin/Laporan.jsx';
 import Kitchen from './pages/admin/Kitchen.jsx';
 import Products from './pages/admin/Products.jsx';
 import Stock from './pages/admin/Stock.jsx';
@@ -50,6 +51,7 @@ function App() {
               <Route path="pos" element={<Pos />} />
               <Route path="pelanggan" element={<Pelanggan />} />
               <Route path="pengeluaran" element={<Pengeluaran />} />
+              <Route path="laporan" element={<Laporan />} />
               <Route path="dapur" element={<Kitchen />} />
               <Route path="produk" element={<Products />} />
               <Route path="stok" element={<Stock />} />

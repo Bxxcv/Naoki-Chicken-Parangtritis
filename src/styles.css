@@ -684,6 +684,56 @@ img { max-width: 100%; display: block; }
   100% { transform: scale(1); }
 }
 
+/* -- Checkout di drawer -- */
+.checkout-form { overflow-y: auto; flex: 1; padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+.checkout-group { display: flex; flex-direction: column; gap: 8px; }
+.checkout-group > span { font-size: .82rem; font-weight: 700; color: var(--c-dark); }
+.checkout-field { display: flex; flex-direction: column; gap: 6px; font-size: .85rem; font-weight: 600; color: var(--c-dark); }
+.checkout-field input {
+  border: 1px solid var(--c-line); border-radius: 10px;
+  padding: 12px 14px; font-family: var(--font-body); font-size: .9rem;
+  font-weight: 400; color: var(--c-ink); background: #fff; outline: none;
+  width: 100%;
+}
+.checkout-field input:focus { border-color: var(--c-gold-dark); }
+.pay-option {
+  display: flex; align-items: center; gap: 10px;
+  border: 1px solid var(--c-line); border-radius: 10px;
+  padding: 12px 14px; font-size: .88rem; cursor: pointer;
+}
+.pay-option input { accent-color: var(--c-red); width: 17px; height: 17px; }
+.receipt-number {
+  font-family: var(--font-display); font-size: 1.6rem !important;
+  font-weight: 700; color: var(--c-red) !important;
+  letter-spacing: .04em;
+}
+.checkout-form .cart-foot { border: 0; padding: 4px 0 0; }
+.checkout-form .form-error { margin: 0; }
+
+/* -- Hasil lacak -- */
+.track-result {
+  margin-top: 18px; background: #fff;
+  border: 1px solid var(--c-line); border-radius: 14px;
+  padding: 18px;
+}
+.track-result-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.track-result-head strong { font-family: var(--font-display); font-size: 1.15rem; }
+.track-timeline { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 0; }
+.track-timeline li {
+  display: flex; gap: 12px; padding: 9px 0;
+  font-size: .88rem; color: var(--c-muted);
+  border-left: 2px solid var(--c-line); padding-left: 16px; margin-left: 6px;
+  position: relative;
+}
+.track-timeline li::before {
+  content: ''; position: absolute; left: -6px; top: 14px;
+  width: 10px; height: 10px; border-radius: 50%; background: var(--c-line);
+}
+.track-timeline li.is-done { color: var(--c-dark); font-weight: 600; }
+.track-timeline li.is-done::before { background: var(--c-red); }
+.track-timeline li.is-now { color: var(--c-red); font-weight: 700; }
+.track-timeline li.is-now::before { background: var(--c-gold); box-shadow: 0 0 0 4px rgba(255, 201, 33, .3); }
+
 /* -- Tombol keranjang melayang -- */
 .cart-fab {
   position: fixed;
@@ -1152,6 +1202,20 @@ img { max-width: 100%; display: block; }
 .kitchen-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: stretch; }
 .kitchen-col { display: flex; flex-direction: column; min-height: 320px; }
 .kitchen-empty { padding: 30px 14px; }
+
+/* -- Kartu pesanan dapur -- */
+.kitchen-card {
+  border: 1px solid var(--a-line); border-radius: 11px;
+  padding: 13px 14px; display: flex; flex-direction: column; gap: 8px;
+  background: #fff;
+}
+.kitchen-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.kitchen-card-head strong { font-size: .92rem; }
+.kitchen-card-head span { font-size: .78rem; color: var(--a-muted); }
+.kitchen-customer { margin: 0; font-size: .82rem; color: var(--a-muted); }
+.kitchen-items { list-style: none; margin: 0; padding: 0; font-size: .87rem; display: flex; flex-direction: column; gap: 3px; }
+.kitchen-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.kitchen-actions .btn-primary, .kitchen-actions .btn-outline { flex: 1; }
 
 /* -- Pengaturan -- */
 .setting-list { list-style: none; margin: 0; padding: 0; }

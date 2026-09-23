@@ -11,6 +11,8 @@ import useReveal from '../lib/useReveal.js';
 import { useCart } from '../lib/cart.jsx';
 import { useProducts } from '../lib/products.jsx';
 import { useSettings, openInfo } from '../lib/settings.jsx';
+import { trackOrder, STATUS_LABEL } from '../lib/orders.js';
+import { formatIDR } from '../lib/cart.jsx';
 import { categoryKey } from '../lib/categories.js';
 import { CATEGORY_COMPONENTS } from '../components/customer/icons.jsx';
 import {
@@ -87,36 +89,66 @@ function SocialButtons() {
   );
 }
 
-// Pelacakan aktif setelah pemesanan online dibuka — sampai saat itu
-// tombol memberi info jujur, bukan berpura-pura melacak.
+// Pelacakan nomor pesanan asli dari database.
 function TrackBox() {
   const { notify } = useCart();
   const [number, setNumber] = useState('');
+  const [result, setResult] = useState(null);
+  const [checking, setChecking] = useState(false);
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    if (!number.trim()) {
+      notify('Masukkan nomor pesanan dulu.');
+      return;
+    }
+    setChecking(true);
+    const res = await trackOrder(number);
+    setChecking(false);
+    setResult(res);
+  };
+
+  const steps = ['pending', 'confirmed', 'preparing', 'ready', 'completed'];
+  const order = result && result.ok ? result.order : null;
+  const currentIdx = order ? steps.indexOf(order.order_status) : -1;
+
   return (
-    <form
-      className="track-box"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!number.trim()) {
-          notify('Masukkan nomor pesanan dulu.');
-          return;
-        }
-        notify('Pelacakan aktif setelah pemesanan online dibuka.');
-      }}
-    >
-      <label className="visually-hidden" htmlFor="track-number">Nomor pesanan</label>
-      <input
-        id="track-number"
-        type="text"
-        placeholder="cth: NK-000123"
-        value={number}
-        onChange={(e) => setNumber(e.target.value)}
-        maxLength={20}
-      />
-      <button type="submit" className="btn-dark">
-        Lacak sekarang <IconArrowRight size={16} />
-      </button>
-    </form>
+    <div style={{ flex: '1 1 320px', minWidth: 0 }}>
+      <form className="track-box" onSubmit={onSubmit}>
+        <label className="visually-hidden" htmlFor="track-number">Nomor pesanan</label>
+        <input
+          id="track-number"
+          type="text"
+          placeholder="cth: NK-260101-AB12"
+          value={number}
+          onChange={(e) => setNumber(e.target.value)}
+          maxLength={20}
+        />
+        <button type="submit" className="btn-dark" disabled={checking}>
+          {checking ? 'Mencari...' : (<>Lacak sekarang <IconArrowRight size={16} /></>)}
+        </button>
+      </form>
+      {result && !result.ok && <p className="form-error" role="alert">{result.error}</p>}
+      {order && (
+        <div className="track-result">
+          <div className="track-result-head">
+            <strong>{order.order_number}</strong>
+            <span className="status-badge badge-success">{STATUS_LABEL[order.order_status] || order.order_status}</span>
+          </div>
+          <p className="cart-note">
+            {(order.order_items || []).map((i) => `${i.quantity}× ${i.product_name_snapshot}`).join(', ')}
+            {' '}• Total {formatIDR(order.total_idr)}
+          </p>
+          <ol className="track-timeline">
+            {steps.map((s, i) => (
+              <li key={s} className={i < currentIdx ? 'is-done' : i === currentIdx ? 'is-now' : ''}>
+                {STATUS_LABEL[s]}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+    </div>
   );
 }
 

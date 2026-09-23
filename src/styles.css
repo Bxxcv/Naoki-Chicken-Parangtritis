@@ -1254,6 +1254,21 @@ img { max-width: 100%; display: block; }
 }
 .admin-logout { margin-top: 8px; width: 100%; }
 
+/* -- POS kasir -- */
+.pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.pos-item {
+  display: flex; flex-direction: column; gap: 4px; align-items: flex-start;
+  background: #fff; border: 1px solid var(--a-line-strong); border-radius: 11px;
+  padding: 12px 13px; cursor: pointer; text-align: left;
+  font-family: var(--font-body); color: var(--a-ink);
+  transition: border-color .14s ease, background .14s ease;
+}
+.pos-item:hover:not(:disabled) { border-color: var(--a-accent); background: #fffaf5; }
+.pos-item:disabled { opacity: .55; cursor: not-allowed; }
+.pos-item strong { font-size: .86rem; }
+.pos-item span { font-size: .82rem; font-weight: 700; color: var(--a-accent); }
+.pos-item small { font-size: .74rem; color: var(--a-muted); }
+
 /* -- Drawer admin (layar kecil) -- */
 .admin-drawer-open, .admin-drawer-close {
   display: none; border: 1px solid var(--a-line-strong); background: #fff;

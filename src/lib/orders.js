@@ -63,10 +63,16 @@ function orderNumber() {
   return `NK-${date}-${rand}`;
 }
 
-export function validateCustomer({ name, phone, address, type }) {
+export function validateCustomer({ name, phone, address, type }, opts) {
+  const optionalPhone = opts && opts.phoneOptional === true;
   if (!name || name.trim().length < 3) return 'Nama minimal 3 huruf.';
   const digits = (phone || '').replace(/\D/g, '');
-  if (digits.length < 9 || digits.length > 15) return 'Nomor HP/WA tidak valid (9–15 digit).';
+  if (!optionalPhone && (digits.length < 9 || digits.length > 15)) {
+    return 'Nomor HP/WA tidak valid (9–15 digit).';
+  }
+  if (optionalPhone && digits.length > 0 && (digits.length < 9 || digits.length > 15)) {
+    return 'Nomor HP/WA tidak valid (9–15 digit).';
+  }
   if (type === 'delivery' && (!address || address.trim().length < 10)) {
     return 'Alamat pengantaran minimal 10 huruf.';
   }

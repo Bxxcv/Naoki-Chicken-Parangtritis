@@ -21,3 +21,5 @@ Do not claim a migration is executed just because the file exists.
   payments + RLS tamu & operasional (DRAFT).
 - `migrations/0006_order_ownership.sql` — tautan order ke akun login
   (user_id) + baca milik sendiri (DRAFT).
+- `migrations/0008_cash_sessions.sql` — sesi kas + penyesuaian +
+  RLS operasional (DRAFT).

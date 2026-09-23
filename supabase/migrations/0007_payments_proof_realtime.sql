@@ -11,7 +11,9 @@ insert into storage.buckets (id, name, public)
 values ('payment-proofs', 'payment-proofs', false)
 on conflict (id) do nothing;
 
-alter table storage.objects enable row level security;
+-- Catatan: JANGAN alter table storage.objects (milik sistem, error
+-- 42501). RLS-nya sudah aktif bawaan; policy di bawah mengikuti pola
+-- resmi Supabase Storage dan boleh dibuat via SQL Editor.
 
 drop policy if exists "authenticated upload payment proofs" on storage.objects;
 create policy "authenticated upload payment proofs" on storage.objects

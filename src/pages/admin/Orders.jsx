@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
+import FilterMenu, { FilterOption } from '../../components/admin/FilterMenu.jsx';
 import { supabase } from '../../lib/supabase.js';
 import { advanceOrder, cancelOrder, markPaid, NEXT_STATUS, NEXT_LABEL, STATUS_LABEL, ORDER_TYPES } from '../../lib/orders.js';
 import { formatIDR } from '../../lib/cart.jsx';
-import { IconPlus, IconSearch, IconFilter, IconOrders } from '../../components/admin/icons.jsx';
+import { IconPlus, IconSearch, IconFilter, IconCalendar, IconPayments, IconOrders } from '../../components/admin/icons.jsx';
 
 const FILTERS = [
   ['Semua', null],
@@ -182,50 +183,43 @@ export default function Orders() {
             </button>
           </div>
 
-          <div className="chip-row" role="tablist" aria-label="Filter status pesanan">
-            {FILTERS.map(([filter]) => (
-              <button
-                key={filter}
-                type="button"
-                role="tab"
-                aria-selected={active === filter}
-                className={`chip${active === filter ? ' is-active' : ''}`}
-                onClick={() => setActive(filter)}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-
           <div className="filter-bar">
-            <div className="chip-row" role="tablist" aria-label="Filter tanggal" style={{ marginBottom: 0 }}>
+            <FilterMenu
+              icon={IconFilter}
+              label="Filter status pesanan"
+              active={active !== 'Semua'}
+              activeLabel={active !== 'Semua' ? active : ''}
+            >
+              {FILTERS.map(([filter]) => (
+                <FilterOption key={filter} selected={active === filter} onSelect={() => setActive(filter)}>
+                  {filter}
+                </FilterOption>
+              ))}
+            </FilterMenu>
+            <FilterMenu
+              icon={IconCalendar}
+              label="Filter tanggal"
+              active={dateRange !== 'Semua waktu'}
+              activeLabel={dateRange !== 'Semua waktu' ? dateRange : ''}
+            >
               {DATE_FILTERS.map(([label]) => (
-                <button
-                  key={label}
-                  type="button"
-                  role="tab"
-                  aria-selected={dateRange === label}
-                  className={`chip${dateRange === label ? ' is-active' : ''}`}
-                  onClick={() => setDateRange(label)}
-                >
+                <FilterOption key={label} selected={dateRange === label} onSelect={() => setDateRange(label)}>
                   {label}
-                </button>
+                </FilterOption>
               ))}
-            </div>
-            <div className="chip-row" role="tablist" aria-label="Filter pembayaran" style={{ marginBottom: 0 }}>
+            </FilterMenu>
+            <FilterMenu
+              icon={IconPayments}
+              label="Filter pembayaran"
+              active={payFilter !== 'Semua bayar'}
+              activeLabel={payFilter !== 'Semua bayar' ? payFilter : ''}
+            >
               {PAY_FILTERS.map(([label]) => (
-                <button
-                  key={label}
-                  type="button"
-                  role="tab"
-                  aria-selected={payFilter === label}
-                  className={`chip${payFilter === label ? ' is-active' : ''}`}
-                  onClick={() => setPayFilter(label)}
-                >
+                <FilterOption key={label} selected={payFilter === label} onSelect={() => setPayFilter(label)}>
                   {label}
-                </button>
+                </FilterOption>
               ))}
-            </div>
+            </FilterMenu>
           </div>
 
           {!loading && !error && (

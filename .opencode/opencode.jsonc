@@ -5,6 +5,16 @@
     "build": {
       "model": "opencode/muse-spark-1.3-contributor-free#high",
       "temperature": 0.15
+    },
+    "naoki-architect": {
+      "mode": "subagent",
+      "description": "Architecture and database planner. Read-only analysis; never edits production code.",
+      "model": "opencode/nemotron-3-ultra-free"
+    },
+    "naoki-reviewer": {
+      "mode": "subagent",
+      "description": "Focused code/repository reviewer. Verify bugs, regressions, routes, data flow and safety.",
+      "model": "opencode/mimo-v2.6-flash-free"
     }
   }
 }

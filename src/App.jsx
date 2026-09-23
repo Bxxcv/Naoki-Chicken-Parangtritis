@@ -14,6 +14,9 @@ import Pos from './pages/admin/Pos.jsx';
 import Pelanggan from './pages/admin/Pelanggan.jsx';
 import Pengeluaran from './pages/admin/Pengeluaran.jsx';
 import Laporan from './pages/admin/Laporan.jsx';
+import Pembayaran from './pages/admin/Pembayaran.jsx';
+import Analitik from './pages/admin/Analitik.jsx';
+import Karyawan from './pages/admin/Karyawan.jsx';
 import Kitchen from './pages/admin/Kitchen.jsx';
 import Products from './pages/admin/Products.jsx';
 import Stock from './pages/admin/Stock.jsx';
@@ -52,6 +55,9 @@ function App() {
               <Route path="pelanggan" element={<Pelanggan />} />
               <Route path="pengeluaran" element={<Pengeluaran />} />
               <Route path="laporan" element={<Laporan />} />
+              <Route path="pembayaran" element={<Pembayaran />} />
+              <Route path="analitik" element={<Analitik />} />
+              <Route path="karyawan" element={<Karyawan />} />
               <Route path="dapur" element={<Kitchen />} />
               <Route path="produk" element={<Products />} />
               <Route path="stok" element={<Stock />} />

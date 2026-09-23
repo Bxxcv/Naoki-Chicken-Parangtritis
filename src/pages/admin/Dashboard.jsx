@@ -1,6 +1,9 @@
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../components/admin/PageHeader.jsx';
 import EmptyState from '../../components/admin/EmptyState.jsx';
+import { supabase } from '../../lib/supabase.js';
+import { formatIDR } from '../../lib/cart.jsx';
 import {
   IconPlus,
   IconStore,
@@ -13,41 +16,126 @@ import {
   IconBox,
   IconBulb,
   IconChevronRight,
-  IconChevronDown,
 } from '../../components/admin/icons.jsx';
 
-// Semua nilai sengaja "—". Sistem belum terhubung data outlet, dan menampilkan
-// angka contoh di dasbor operasional bisa dibaca sebagai transaksi nyata.
-const STATS = [
-  { icon: IconPayments, label: 'Total pendapatan' },
-  { icon: IconOrders, label: 'Total pesanan' },
-  { icon: IconCustomers, label: 'Pelanggan' },
-  { icon: IconTrend, label: 'Rata-rata pesanan' },
-];
-
 const CHANNELS = [
-  { label: 'Makan di tempat', tone: 'dine' },
-  { label: 'Bawa pulang', tone: 'takeaway' },
-  { label: 'Ambil sendiri', tone: 'pickup' },
-  { label: 'Diantar', tone: 'delivery' },
+  ['dine_in', 'Makan di tempat', '#f74900'],
+  ['takeaway', 'Bawa pulang', '#e5ad00'],
+  ['pickup', 'Ambil sendiri', '#16a34a'],
+  ['delivery', 'Diantar', '#3b82f6'],
 ];
 
-const ORDER_STATUS = [
-  { label: 'Baru', tone: 'new' },
-  { label: 'Diproses', tone: 'progress' },
-  { label: 'Siap', tone: 'ready' },
-  { label: 'Selesai', tone: 'done' },
+const STATUS_ROWS = [
+  ['pending', 'Baru', 'new'],
+  ['confirmed', 'Dikonfirmasi', 'progress'],
+  ['preparing', 'Diproses', 'progress'],
+  ['ready', 'Siap', 'ready'],
+  ['completed', 'Selesai', 'done'],
 ];
 
-const INSIGHTS = [
-  ['Menu paling diminati', 'Belum dapat dihitung'],
-  ['Jam tersibuk', 'Belum dapat dihitung'],
-  ['Kanal unggulan', 'Belum dapat dihitung'],
-];
+function startOfToday() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
 
-const HOURS = ['08.00', '11.00', '14.00', '17.00', '20.00'];
+function hourOf(iso) {
+  return new Date(iso).getHours();
+}
 
+// Semua angka dari transaksi nyata; kosong = jujur kosong.
 export default function Dashboard() {
+  const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState(0);
+  const [top, setTop] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+    const { data: outlet } = await supabase.from('outlets').select('id').eq('slug', 'parangtritis').maybeSingle();
+    if (!outlet) {
+      setLoading(false);
+      return;
+    }
+    const since = startOfToday();
+    const [{ data: orderRows }, { count: custCount }, { data: itemRows }] = await Promise.all([
+      supabase
+        .from('orders')
+        .select('total_idr,order_status,order_type,created_at')
+        .eq('outlet_id', outlet.id)
+        .gte('created_at', since)
+        .limit(1000),
+      supabase.from('customers').select('id', { count: 'exact', head: true }),
+      supabase
+        .from('order_items')
+        .select('product_name_snapshot,quantity,orders!inner(outlet_id,order_status,created_at)')
+        .eq('orders.outlet_id', outlet.id)
+        .gte('orders.created_at', since)
+        .neq('orders.order_status', 'cancelled')
+        .limit(2000),
+    ]);
+    setOrders(orderRows || []);
+    setCustomers(custCount || 0);
+    const agg = {};
+    (itemRows || []).forEach((row) => {
+      const key = row.product_name_snapshot || 'Lainnya';
+      agg[key] = (agg[key] || 0) + (Number(row.quantity) || 0);
+    });
+    setTop(Object.entries(agg).sort((a, b) => b[1] - a[1]).slice(0, 5));
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const valid = orders.filter((o) => o.order_status !== 'cancelled');
+  const revenue = valid.reduce((s, o) => s + (Number(o.total_idr) || 0), 0);
+  const avg = valid.length ? Math.round(revenue / valid.length) : 0;
+
+  const channelCounts = {};
+  valid.forEach((o) => { channelCounts[o.order_type] = (channelCounts[o.order_type] || 0) + 1; });
+  const channelTotal = valid.length;
+  let gradient = '#f1efed';
+  if (channelTotal > 0) {
+    let acc = 0;
+    const stops = CHANNELS.map(([key, , color]) => {
+      const count = channelCounts[key] || 0;
+      const from = (acc / channelTotal) * 100;
+      acc += count;
+      const to = (acc / channelTotal) * 100;
+      return `${color} ${from}% ${to}%`;
+    });
+    gradient = `conic-gradient(${stops.join(', ')})`;
+  }
+
+  const statusCounts = {};
+  orders.forEach((o) => { statusCounts[o.order_status] = (statusCounts[o.order_status] || 0) + 1; });
+
+  const hours = {};
+  valid.forEach((o) => {
+    const h = hourOf(o.created_at);
+    hours[h] = (hours[h] || 0) + 1;
+  });
+  const busyHour = Object.entries(hours).sort((a, b) => b[1] - a[1])[0];
+  const topChannel = CHANNELS.map(([key, label]) => [label, channelCounts[key] || 0]).sort((a, b) => b[1] - a[1])[0];
+
+  const insights = [
+    ['Menu paling diminati', top.length > 0 ? `${top[0][0]} (${top[0][1]} porsi)` : 'Belum dapat dihitung'],
+    ['Jam tersibuk', busyHour ? `Pukul ${String(busyHour[0]).padStart(2, '0')}.00 (${busyHour[1]} order)` : 'Belum dapat dihitung'],
+    ['Kanal unggulan', topChannel && topChannel[1] > 0 ? `${topChannel[0]} (${topChannel[1]} order)` : 'Belum dapat dihitung'],
+  ];
+
+  const stats = [
+    { icon: IconPayments, label: 'Pendapatan hari ini', value: formatIDR(revenue), note: `${valid.length} transaksi valid` },
+    { icon: IconOrders, label: 'Pesanan hari ini', value: String(orders.length), note: 'Semua status' },
+    { icon: IconCustomers, label: 'Pelanggan', value: String(customers), note: 'Terdaftar total' },
+    { icon: IconTrend, label: 'Rata-rata pesanan', value: formatIDR(avg), note: 'Per transaksi valid' },
+  ];
+
   return (
     <>
       <PageHeader
@@ -67,24 +155,22 @@ export default function Dashboard() {
             <h2>Selamat datang, Tim Naoki!</h2>
             <p>Ringkasan aktivitas outlet Anda.</p>
             <p className="admin-status-line">
-              <span className="dot dot--warn" />
-              Data outlet belum terhubung · Hari ini
+              <span className="dot dot--ready" />
+              Terhubung database outlet · Hari ini
             </p>
           </div>
           <div className="admin-welcome-actions">
-            <button type="button" className="btn-outline">
-              <IconCalendar size={16} /> Hari ini <IconChevronDown size={15} />
-            </button>
-            <button type="button" className="btn-outline"><IconDownload size={16} /> Laporan</button>
+            <span className="btn-outline"><IconCalendar size={16} /> Hari ini</span>
+            <Link to="/admin/laporan" className="btn-outline"><IconDownload size={16} /> Laporan</Link>
           </div>
         </div>
 
         <div className="stat-grid">
-          {STATS.map(({ icon: Icon, label }) => (
+          {stats.map(({ icon: Icon, label, value, note }) => (
             <article className="stat-card" key={label}>
               <span className="stat-label"><Icon size={17} /> {label}</span>
-              <span className="stat-value">—</span>
-              <span className="stat-note">Belum ada transaksi tercatat</span>
+              <span className="stat-value">{loading ? '…' : value}</span>
+              <span className="stat-note">{note}</span>
             </article>
           ))}
         </div>
@@ -92,82 +178,76 @@ export default function Dashboard() {
         <div className="grid-2">
           <section className="panel">
             <div className="panel-head">
-              <h3>Tren pendapatan &amp; pesanan</h3>
+              <h3>Pesanan per kanal</h3>
               <span className="panel-meta">Hari ini</span>
             </div>
-            <div className="chart-legend">
-              <span><i className="dot dot--revenue" /> Pendapatan</span>
-              <span><i className="dot dot--orders" /> Pesanan</span>
+            <div className="donut-wrap">
+              {channelTotal === 0 ? (
+                <div className="donut-empty">
+                  <span className="donut-value">—</span>
+                  <span className="donut-label">Total pesanan</span>
+                </div>
+              ) : (
+                <div className="donut-fill" style={{ background: gradient }}>
+                  <div className="donut-center">
+                    <span className="donut-value">{channelTotal}</span>
+                    <span className="donut-label">Total pesanan</span>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="chart-empty">
-              <EmptyState
-                dashed={false}
-                icon={<IconTrend size={26} />}
-                title="Grafik menunggu transaksi"
-                desc="Tidak ada data pada periode ini."
-              />
-            </div>
-            <div className="chart-axis">
-              {HOURS.map((hour) => <span key={hour}>{hour}</span>)}
-            </div>
-            <div className="chart-foot">
-              <div><span>Pendapatan</span><strong>—</strong></div>
-              <div><span>Pesanan</span><strong>—</strong></div>
-              <div><span>Jam teramai</span><strong>—</strong></div>
-            </div>
+            <ul className="legend-list">
+              {CHANNELS.map(([key, label]) => (
+                <li key={key}>
+                  <span>{label}</span>
+                  <strong>{channelCounts[key] || 0}</strong>
+                </li>
+              ))}
+            </ul>
           </section>
 
           <section className="panel">
-            <div className="panel-head">
-              <h3>Pesanan per kanal</h3>
-            </div>
-            <div className="donut-wrap">
-              <div className="donut-empty">
-                <span className="donut-value">—</span>
-                <span className="donut-label">Total pesanan</span>
-              </div>
-            </div>
+            <div className="panel-head"><h3>Status pesanan</h3><span className="panel-meta">Hari ini</span></div>
             <ul className="legend-list">
-              {CHANNELS.map(({ label, tone }) => (
-                <li key={label}>
+              {STATUS_ROWS.map(([key, label, tone]) => (
+                <li key={key}>
                   <span><i className={`dot dot--${tone}`} /> {label}</span>
-                  <strong>—</strong>
+                  <strong>{statusCounts[key] || 0}</strong>
                 </li>
               ))}
             </ul>
           </section>
         </div>
 
-        <div className="grid-3">
+        <div className="grid-2">
           <section className="panel">
             <div className="panel-head">
               <h3>Produk teratas</h3>
               <Link to="/admin/produk" className="icon-link" aria-label="Lihat semua produk"><IconChevronRight size={17} /></Link>
             </div>
-            <EmptyState
-              dashed={false}
-              icon={<IconBox size={26} />}
-              title="Belum ada produk terjual"
-              desc="Urutan mengikuti pesanan selesai."
-            />
-          </section>
-
-          <section className="panel">
-            <div className="panel-head"><h3>Status pesanan</h3></div>
-            <ul className="legend-list">
-              {ORDER_STATUS.map(({ label, tone }) => (
-                <li key={label}>
-                  <span><i className={`dot dot--${tone}`} /> {label}</span>
-                  <strong>—</strong>
-                </li>
-              ))}
-            </ul>
+            {top.length === 0 ? (
+              <EmptyState
+                dashed={false}
+                icon={<IconBox size={26} />}
+                title="Belum ada produk terjual"
+                desc="Urutan mengikuti pesanan hari ini."
+              />
+            ) : (
+              <ul className="legend-list">
+                {top.map(([name, qty]) => (
+                  <li key={name}>
+                    <span>{name}</span>
+                    <strong>{qty} porsi</strong>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <section className="panel">
             <div className="panel-head"><h3><IconBulb size={17} /> Wawasan bisnis</h3></div>
             <ul className="insight-list">
-              {INSIGHTS.map(([label, value]) => (
+              {insights.map(([label, value]) => (
                 <li key={label}>
                   <span>{label}</span>
                   <strong>{value}</strong>
